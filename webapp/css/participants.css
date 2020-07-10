@@ -1,0 +1,17 @@
+/* Banner at top of page */
+.headerBanner{
+    top: 0; 
+    left: 0; 
+    background-color: rgb(148, 196, 172); 
+    width: 100%; 
+    margin: 0;
+    padding: 10px;
+}
+
+/* Logo inside the banner */
+.logo{
+    display: inline-block;
+    top: 0px;
+    left: 0px;
+}
+
