@@ -90,7 +90,7 @@ body{
   width: 30%;
 }
 
-/* Style for top buttons: Share invite and View Particpants */
+/* Style for top buttons i.e Share invite and View Particpants */
 .top-buttons{
     margin-left: 2%;
 }
@@ -118,7 +118,7 @@ body{
     background-color: rgb(245, 156, 150);
 }
 
-/* Button lining to participants page */
+/* Button linking to participants page */
 .participants{
     padding: 12px 25px;
     text-decoration: none;
