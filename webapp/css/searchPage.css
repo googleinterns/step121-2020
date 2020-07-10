@@ -95,10 +95,12 @@ body{
     margin-left: 2%;
 }
 
+/* Name given to group search session */
 #session-name{
     color: rgb(119, 118, 118);
 }
 
+/* Button to share group search invite  */
 .share-invite{
     padding: 12px 25px;
     text-decoration: none;
@@ -116,6 +118,7 @@ body{
     background-color: rgb(245, 156, 150);
 }
 
+/* Button lining to participants page */
 .participants{
     padding: 12px 25px;
     text-decoration: none;
