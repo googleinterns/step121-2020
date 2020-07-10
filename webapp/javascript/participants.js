@@ -1,6 +1,6 @@
-/** Some Hard-coded data to use to display the participants for now. */
+/** Some Hard-coded data to display as participants temporarily. */
 var participant1 = {
-    name: "Spiderman",
+    name: "Spider-man",
     location: "New York"
 };
 var participant2 = {
