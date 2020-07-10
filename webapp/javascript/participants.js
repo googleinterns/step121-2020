@@ -37,4 +37,4 @@ function showParticipants() {
 
     participantContainer.appendChild(newDiv);
   });
- }
+}
