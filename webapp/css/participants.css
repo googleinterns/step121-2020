@@ -1,0 +1,20 @@
+/* Style Sheet for the participant page, shows participants and their filters. */
+
+body{
+    font-family: Helvetica, sans-serif;
+}
+
+/* Logo at the top left corner */
+#logo {
+    display: inline-block;
+    width:130px;
+    height:90px;
+}
+
+/* Banner on top of page contains logo */
+#header-banner   {
+    border: 1px solid #ccc;
+    background-color: whitesmoke;
+    width: 100%; 
+    margin: -10px;
+}
