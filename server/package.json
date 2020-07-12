@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@google-cloud/datastore": "^6.1.0",
+    "cookie-session": "^1.4.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "uuid": "^8.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "scripts": {
+    "watch": "nodemon src/server.js",
+    "format": "prettier --write \"{scripts,src}\"/**/*.js --write package.json",
+    "datastore:start": "node scripts/datastore.js"
+  }
+}
