@@ -69,7 +69,7 @@ body{
 
 /* Style for the web app description */
 #about-app{
-    background-image: linear-gradient(to right,#BBE3CF, rgb(236, 151, 144), rgb(241, 126, 117), rgb(247, 155, 148), #d4ede0);
+    background-image: linear-gradient(to right,#BBE3CF, rgb(236, 151, 144), rgb(241, 126, 117), rgb(247, 155, 148), #d6e6dd);
     box-shadow: 5px 8px 10px #d1d1d1;
     text-align: center;
     color: rgb(240, 236, 236);
