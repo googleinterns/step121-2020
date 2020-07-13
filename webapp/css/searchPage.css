@@ -2,7 +2,7 @@ body{
     font-family: Helvetica, sans-serif;
 }
 
-/* Banner on top of page contains logo */
+/* Banner at top of page contains logo */
 #header-banner   {
     border: 1px solid #ccc;
     background-color: whitesmoke;
@@ -29,7 +29,7 @@ body{
     padding: 25px; 
 }
 
-/* Group search name (in the input form) */
+/* Group-search name */
 .session-name{
     color: #555;    
 }
@@ -54,8 +54,8 @@ body{
 .textb label{
     display: inline-block;
     text-align: left;
-    color: #333;
-    text-transform: uppercase;
+    color:rgb(114, 114, 114);
+    font-weight: 600;
     font-size: 14px;
 }
 
