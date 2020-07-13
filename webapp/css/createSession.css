@@ -1,0 +1,80 @@
+/* Style Sheet for the create page, where users create a session. */
+
+/* Background color. */
+body{
+    background-color:#BBE3CF; /* For browsers that do not support gradients */
+    background-image: linear-gradient(to right, #BBE3CF , #d6e6dd); 
+    font-family: Helvetica, sans-serif;
+}
+
+/* Logo at the top left of page. */
+#logo {
+    display: inline-block;
+    width:200px;
+    height:150px;
+}
+
+/* White box containing input form.*/
+#input-form{
+    margin-left:auto;
+    margin-right: auto;
+    width: 50%;
+    text-align: center;
+    background-color: whitesmoke;
+    border-radius: 0.5rem;
+    box-shadow: 5px 8px 10px #d1d1d1;
+    padding: 25px;
+    padding-bottom: 60px; 
+}
+
+/* Styling for "Begin a Group Search" text.*/
+.start-session-text{
+    color: rgb(123, 124, 123);
+    font-family: Helvetica, sans-serif;
+    font-weight: bold;
+    font-size: 30px;
+}
+
+/* Input for naming a session. */
+#session-name {
+  width: 40%;
+  padding: 15px 32px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border: 3px solid #ccc;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+  outline: none;
+}
+
+#session-name:focus {
+  border: 3px solid #555;
+}
+
+/* Style for Start Session Button. */
+#start-session-btn {
+    background-color: #FE5F55; 
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+#start-session-btn:hover{
+    background-color: rgb(226, 55, 43);
+}
+
+/* Style for the web app description */
+#about-app{
+    background-image: linear-gradient(to right,#BBE3CF, rgb(236, 151, 144), rgb(241, 126, 117), rgb(247, 155, 148), #d6e6dd);
+    box-shadow: 5px 8px 10px #d1d1d1;
+    text-align: center;
+    color: rgb(240, 236, 236);
+    padding: 5px;
+    margin-top: 10%;
+    font-size: 17px;
+    font-weight: 600;
+}
