@@ -5,7 +5,7 @@ The application is configured through a .env file. There's a .env.sample file wi
 The server will automatically read any variables in .env and add it to its own environment. During production, we can either directly add a .env file containing a production configuration to the production area, or, we can launch the server and set the environment variables ourselves.
 
 ## Datastore Emulation
-For launching a datastore emulator locally, run `yarn run datastore:start`. This requires Docker to be installed. If you are using Cloud Shell, then the `gcloud` sdk should already be installed, so you can probably manually launch a datastore emulator.
+For launching a datastore emulator locally, run `npm run datastore:start`. This requires Docker to be installed. If you are using Cloud Shell, then the `gcloud` sdk should already be installed, so you can probably manually launch a datastore emulator.
 
 ## Server
-For testing the server, run `yarn run watch`. This will launch the server. It will also restart the server everytime a source file changes.
+For testing the server, run `npm run watch`. This will launch the server. It will also restart the server everytime a source file changes.
