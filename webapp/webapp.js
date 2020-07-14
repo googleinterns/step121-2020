@@ -3,7 +3,7 @@ const path = require('path');
 const app = new express();
 const port = 8080;
 
-app.use(express.static(path.join(__dirname, 'frontend')));
+app.use(express.static(__dirname));
 
 app.get('/', (req, res) => res.redirect('../html/createSession.html'));
 
