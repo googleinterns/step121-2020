@@ -5,6 +5,7 @@ const datastore = require("./datastore");
 const app = express();
 
 const KIND_EVENT = "Event";
+
 const URL_PARAM_EVENT_ID = `eventID`;
 
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
@@ -22,18 +23,24 @@ app.use(
   })
 );
 
-app.use((req, res, next) => {
-  if (req.session.isNew) {
+/**
+ * Middleware that attaches to every request and checks if there
+ * is a user id. If not, we assume this is a new user and give
+ * them a new uuid that is stored in their cookie.
+ */
+app.use((request, response, next) => {
+  if (request.session.isNew) {
     // Don't worry about collision
     const uuid = uuidv4();
-    req.session.userID = uuid;
+    request.session.userID = uuid;
   } else {
     if (
+      // regex that matches valid uuids
       !/^[a-z0-9]{8}-[a-z0-9]{4}-4[a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12}$/.test(
-        req.session.userID
+        request.session.userID
       )
     ) {
-      return res.status(500).json({
+      return response.status(500).json({
         status: 500,
         error: { type: ERROR_BAD_UUID },
       });
@@ -45,16 +52,16 @@ app.use((req, res, next) => {
 /**
  *  Middleware that can be used on routes that match `/:${URL_PARAM_EVENT_ID}/...`
  *  This will fetch the event from Datastore and attach it and its key to
- *  req.event and req.datastoreKey respectively.
+ *  request.event and request.datastoreKey respectively.
  *
  *  It will return an error if, for any reason, the event could not be found.
  */
-async function getEvent(req, res, next) {
+async function getEvent(request, response, next) {
   const key = datastore.key([
     KIND_EVENT,
     // If the url is: /1/details
-    // then `req.params[URL_PARAM_EVENT_ID]` will be 1
-    parseInt(req.params[URL_PARAM_EVENT_ID]),
+    // then `request.params[URL_PARAM_EVENT_ID]` will be 1
+    parseInt(request.params[URL_PARAM_EVENT_ID]),
   ]);
   datastore
     .runQuery(datastore.createQuery(KIND_EVENT).filter("__key__", "=", key))
@@ -63,7 +70,7 @@ async function getEvent(req, res, next) {
       // results[1] is metadata about the request (e.g are there additional results)
       const events = results[0];
       if (events.length === 0) {
-        res.status(400).json({
+        response.status(400).json({
           status: 400,
           error: {
             type: ERROR_INVALID_EVENT_ID,
@@ -76,21 +83,23 @@ async function getEvent(req, res, next) {
           event === null ||
           typeof event !== "object"
         ) {
-          res.status(500).json({
+          response.status(500).json({
             status: 500,
             error: {
               type: ERROR_BAD_DB_INTERACTION,
             },
           });
         } else {
-          req.event = event;
-          req.datastoreKey = key;
+          request.event = event;
+          request.datastoreKey = key;
           next();
         }
       }
     })
-    .catch((_) => {
-      res.status(500).json({
+    .catch((err) => {
+      // TODO(ved): Potentially log to file instead of stderr
+      console.error(err)
+      response.status(500).json({
         status: 500,
         error: {
           type: ERROR_BAD_DB_INTERACTION,
@@ -99,10 +108,10 @@ async function getEvent(req, res, next) {
     });
 }
 
-app.post("/create", async (req, res) => {
+app.post("/create", async (_, response) => {
   const key = datastore.key([KIND_EVENT]);
   const result = await datastore.save({ key, data: { users: {} } });
-  res.send({
+  response.send({
     // Datastore automatically generates a unique id
     // for the key associated with our entity. This is the only
     // way to get it :(
@@ -113,38 +122,39 @@ app.post("/create", async (req, res) => {
   });
 });
 
-app.post(`/:${URL_PARAM_EVENT_ID}`, getEvent, async (req, res) => {
-  const { body, datastoreKey: key, event } = req;
+app.post(`/:${URL_PARAM_EVENT_ID}`, getEvent, async (request, response) => {
+  const { body, datastoreKey: key, event } = request;
   const location = JSON.parse(body.location);
   const [lat, long] = location;
   const { name } = body;
   event.users = event.users || {};
-  const userInfo = event.users[req.session.userID] || {};
-  event.users[req.session.userID] = { ...userInfo, name, lat, long };
+  const userInfo = event.users[request.session.userID] || {};
+  event.users[request.session.userID] = { ...userInfo, name, lat, long };
   datastore
     // Datastore attaches a "symbol" (https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
     // to any entities returned from a query. We don't want to store this attached metadata back into the database
     // so we remove it with Object.fromEntries
     .save({ key, data: Object.fromEntries(Object.entries(event)) })
     .then(() => {
-      res.json({ status: 200 });
+      response.json({ status: 200 });
     })
-    .catch((_) => {
-      res
+    .catch((err) => {
+      console.error(err)
+      response
         .status(500)
         .json({ status: 500, error: { type: ERROR_BAD_DB_INTERACTION } });
     });
 });
 
-app.get(`/:${URL_PARAM_EVENT_ID}/details`, getEvent, async (req, res) => {
-  res.json({ status: 200, data: req.event });
+app.get(`/:${URL_PARAM_EVENT_ID}/details`, getEvent, async (request, response) => {
+  response.json({ status: 200, data: request.event });
 });
 
-app.get(`/:${URL_PARAM_EVENT_ID}/me`, getEvent, async (req, res) => {
-  const { event } = req;
+app.get(`/:${URL_PARAM_EVENT_ID}/me`, getEvent, async (request, response) => {
+  const { event } = request;
   const users = event.users || {};
-  const userInfo = users[req.session.userID] || {};
-  res.json({
+  const userInfo = users[request.session.userID] || {};
+  response.json({
     status: 200,
     data: userInfo,
   });
