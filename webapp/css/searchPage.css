@@ -29,11 +29,6 @@ body{
     padding: 25px; 
 }
 
-/* Group-search name */
-.session-name{
-    color: #555;    
-}
-
 /* Input box for form */
 .input {
   width: 300px;
@@ -54,7 +49,7 @@ body{
 .textb label{
     display: inline-block;
     text-align: left;
-    color:rgb(114, 114, 114);
+    color:#444;
     font-weight: 600;
     font-size: 14px;
 }
@@ -76,14 +71,45 @@ body{
 }
 
 /* Sectioning search results to the left */
-.search-results {
+#search-results {
   float: left;
-  margin: 0 1.5%;
+  margin: 25px;
   width: 63%;
 }
 
+#results-title {
+  color: #444;
+}
+
+.restaurant-card {
+  display: grid;
+  grid-template-columns: 50% auto;
+  border: 1px solid #d4ede0;
+  border-radius: 0.5rem;
+  margin-top: 25px;
+  padding: 25px;
+}
+
+.restaurant-card:hover {
+  box-shadow: 3px 3px 15px #d1d1d1;
+  transition: box-shadow .3s ease-in-out;
+}
+
+.restaurant-name {
+  color: #FE5F55;
+}
+
+.restaurant-info {
+  color: #444;
+}
+
+.restaurant-basic-info {
+  text-align: right;
+  color: #444;
+}
+
 /* Sectioning map to the right */
-.map {
+#map {
   float: right;
   margin: 0 1.5%;
   width: 30%;
@@ -96,7 +122,7 @@ body{
 
 /* Style for the given session name */
 #session-name{
-    color: rgb(119, 118, 118);
+    color:rgb(145, 145, 145);
 }
 
 /* Button to share group search invite */
@@ -106,7 +132,7 @@ body{
     display: inline-block;
     font-size: 16px;
     background-color: white; 
-    color: black; 
+    color: #444; 
     border: 2px solid #FE5F55;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -125,10 +151,10 @@ body{
     display: inline-block;
     font-size: 16px;
     background-color: white; 
-    color: black; 
+    color: #444; 
     border: 2px solid #FE5F55;
     margin-top: 30px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     border-radius: 0.5rem;
 }
 
