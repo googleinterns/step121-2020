@@ -1,6 +1,7 @@
 body{
     font-family: Helvetica, sans-serif;
     background-color: #BBE3CF;
+    margin: 0px;
 }
 
 /* Logo at the top left corner */
@@ -14,8 +15,7 @@ body{
 #header-banner   {
     border: 1px solid #ccc;
     background-color: whitesmoke;
-    width: 105%; 
-    margin: -10px;
+    width: 100%; 
 }
 
 #content-card {
