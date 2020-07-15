@@ -1,1 +1,2 @@
-# step121-2020
+# Step Project
+[Server Documentation](server/README.md)
