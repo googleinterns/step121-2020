@@ -1,32 +1,32 @@
-body{
-    font-family: Helvetica, sans-serif;
-    margin: 0px;
+body {
+  font-family: Helvetica, sans-serif;
+  margin: 0px;
 }
 
 /* Banner at top of page contains logo */
-#header-banner   {
-    border: 1px solid #ccc;
-    background-color: whitesmoke;
-    width: 100%; 
+#header-banner {
+  border: 1px solid #ccc;
+  background-color: whitesmoke;
+  width: 100%;
 }
 
 /* Logo at the top left corner */
-#logo   {
-    display: inline-block;
-    width:130px;
-    height:90px;
+#logo {
+  display: inline-block;
+  width: 130px;
+  height: 90px;
 }
 
 /* Input form i.e for name, location, etc. */
-#input-form{
-    margin-left:auto;
-    margin-right: auto;
-    width: 50%;
-    text-align: left;
-    background-color: #e2f1ea;
-    border-radius: 0.5rem;
-    box-shadow: 5px 8px 10px #d1d1d1;
-    padding: 25px; 
+#input-form {
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  text-align: left;
+  background-color: #e2f1ea;
+  border-radius: 0.5rem;
+  box-shadow: 5px 8px 10px #d1d1d1;
+  padding: 25px;
 }
 
 /* Input box for form */
@@ -46,28 +46,28 @@ body{
 }
 
 /* input box label */
-.textb label{
-    display: inline-block;
-    text-align: left;
-    color:#444;
-    font-weight: 600;
-    font-size: 14px;
+.textb label {
+  display: inline-block;
+  text-align: left;
+  color: #444;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 /* Enter Search Button */
 #search-btn {
-    background-color: #FE5F55; 
-    border: 1px solid rgb(145, 145, 145);
-    border-radius: 0.2rem;
-    color: white;
-    padding: 12px 25px;
-    text-align: center;
-    text-decoration: none;
-    font-size: 16px;
+  background-color: #fe5f55;
+  border: 1px solid rgb(145, 145, 145);
+  border-radius: 0.2rem;
+  color: white;
+  padding: 12px 25px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
 }
 
-#search-btn:hover{
-    background-color: rgb(226, 55, 43);
+#search-btn:hover {
+  background-color: rgb(226, 55, 43);
 }
 
 /* Sectioning search results to the left */
@@ -93,11 +93,11 @@ body{
 
 .restaurant-card:hover {
   box-shadow: 3px 3px 15px #d1d1d1;
-  transition: box-shadow .3s ease-in-out;
+  transition: box-shadow 0.3s ease-in-out;
 }
 
 .restaurant-name {
-  color: #FE5F55;
+  color: #fe5f55;
 }
 
 /* Styles restaurant information on the left side of the restaurant card */
@@ -119,48 +119,47 @@ body{
 }
 
 /* Style for top buttons: Share invite and View Particpants */
-.top-buttons{
-    margin-left: 2%;
+.top-buttons {
+  margin-left: 2%;
 }
 
 /* Style for the given session name */
-#session-name{
-    color: rgb(145, 145, 145);
+#session-name {
+  color: rgb(145, 145, 145);
 }
 
 /* Button to share group search invite */
-.share-invite{
-    padding: 12px 25px;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    background-color: white; 
-    color: #444; 
-    border: 2px solid #FE5F55;
-    margin-top: 30px;
-    margin-bottom: 20px;
-    border-radius: 0.5rem;
+.share-invite {
+  padding: 12px 25px;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  background-color: white;
+  color: #444;
+  border: 2px solid #fe5f55;
+  margin-top: 30px;
+  margin-bottom: 20px;
+  border-radius: 0.5rem;
 }
 
-
-.share-invite:hover{
-    background-color: rgb(245, 156, 150);
+.share-invite:hover {
+  background-color: rgb(245, 156, 150);
 }
 
 /* Button for linking to participants page*/
-.participants{
-    padding: 12px 25px;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    background-color: white; 
-    color: #444; 
-    border: 2px solid #FE5F55;
-    margin-top: 30px;
-    margin-bottom: 20px;
-    border-radius: 0.5rem;
+.participants {
+  padding: 12px 25px;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  background-color: white;
+  color: #444;
+  border: 2px solid #fe5f55;
+  margin-top: 30px;
+  margin-bottom: 20px;
+  border-radius: 0.5rem;
 }
 
-.participants:hover{
-    background-color: rgb(245, 156, 150);
+.participants:hover {
+  background-color: rgb(245, 156, 150);
 }
