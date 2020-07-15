@@ -13,7 +13,7 @@
   "scripts": {
     "start": "node src/server.js",
     "watch": "nodemon src/server.js",
-    "format": "prettier --write \"{scripts,src}/**/*.js\" --write package.json",
+    "format": "prettier --write \"{scripts,src,static}/**/*.{js,css,html}\" --write package.json",
     "datastore:start": "node scripts/datastore.js"
   }
 }
