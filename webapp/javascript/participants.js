@@ -1,9 +1,11 @@
 /** Some Hard-coded data to display as participants temporarily. */
+
 const participant1 = {
   name: "Spider-man",
   location: "New York"
 };
 const participant2 = {
+
   name: "Batman",
   location: "Gotham City"
 };
@@ -29,6 +31,7 @@ function showParticipants() {
     name.classList.add('participant-name');
     name.appendChild(document.createTextNode(participant.name));
     newDiv.appendChild(name);
+
 
     let location = document.createElement('p');
     location.classList.add('participant-info');
