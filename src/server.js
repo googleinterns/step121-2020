@@ -8,9 +8,14 @@ const KIND_EVENT = "Event";
 
 const URL_PARAM_EVENT_ID = `eventID`;
 
+// TODO(ved): There's definitely a cleaner way to do this.
+const PREFIX_API = "/api";
+
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
+
+app.use(express.static("static"));
 
 // Parse request bodies with the json content header into JSON
 app.use(express.json());
@@ -98,7 +103,7 @@ async function getEvent(request, response, next) {
     })
     .catch((err) => {
       // TODO(ved): Potentially log to file instead of stderr
-      console.error(err)
+      console.error(err);
       response.status(500).json({
         status: 500,
         error: {
@@ -108,7 +113,7 @@ async function getEvent(request, response, next) {
     });
 }
 
-app.post("/create", async (_, response) => {
+app.post(`${PREFIX_API}/create`, async (_, response) => {
   const key = datastore.key([KIND_EVENT]);
   const result = await datastore.save({ key, data: { users: {} } });
   response.send({
@@ -122,45 +127,55 @@ app.post("/create", async (_, response) => {
   });
 });
 
-app.post(`/:${URL_PARAM_EVENT_ID}`, getEvent, async (request, response) => {
-  const { body, datastoreKey: key, event } = request;
-  const location = JSON.parse(body.location);
-  const [lat, long] = location;
-  const { name } = body;
-  event.users = event.users || {};
-  const userInfo = event.users[request.session.userID] || {};
-  event.users[request.session.userID] = { ...userInfo, name, lat, long };
-  datastore
-    // Datastore attaches a "symbol" (https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
-    // to any entities returned from a query. We don't want to store this attached metadata back into the database
-    // so we remove it with Object.fromEntries
-    .save({ key, data: Object.fromEntries(Object.entries(event)) })
-    .then(() => {
-      response.json({ status: 200 });
-    })
-    .catch((err) => {
-      console.error(err)
-      response
-        .status(500)
-        .json({ status: 500, error: { type: ERROR_BAD_DB_INTERACTION } });
-    });
-});
-
-app.get(`/:${URL_PARAM_EVENT_ID}/details`, getEvent, async (request, response) => {
-  response.json({ status: 200, data: request.event });
-});
-
-app.get(`/:${URL_PARAM_EVENT_ID}/me`, getEvent, async (request, response) => {
-  const { event } = request;
-  const users = event.users || {};
-  const userInfo = users[request.session.userID] || {};
-  response.json({
-    status: 200,
-    data: userInfo,
-  });
-});
-
-const port = 3000;
-app.listen(port, () =>
-  console.log(`Server listening at http://localhost:${port}`)
+app.post(
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}`,
+  getEvent,
+  async (request, response) => {
+    const { body, datastoreKey: key, event } = request;
+    const location = JSON.parse(body.location);
+    const [lat, long] = location;
+    const { name } = body;
+    event.users = event.users || {};
+    const userInfo = event.users[request.session.userID] || {};
+    event.users[request.session.userID] = { ...userInfo, name, lat, long };
+    datastore
+      // Datastore attaches a "symbol" (https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
+      // to any entities returned from a query. We don't want to store this attached metadata back into the database
+      // so we remove it with Object.fromEntries
+      .save({ key, data: Object.fromEntries(Object.entries(event)) })
+      .then(() => {
+        response.json({ status: 200 });
+      })
+      .catch((err) => {
+        console.error(err);
+        response
+          .status(500)
+          .json({ status: 500, error: { type: ERROR_BAD_DB_INTERACTION } });
+      });
+  }
 );
+
+app.get(
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/details`,
+  getEvent,
+  async (request, response) => {
+    response.json({ status: 200, data: request.event });
+  }
+);
+
+app.get(
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/me`,
+  getEvent,
+  async (request, response) => {
+    const { event } = request;
+    const users = event.users || {};
+    const userInfo = users[request.session.userID] || {};
+    response.json({
+      status: 200,
+      data: userInfo,
+    });
+  }
+);
+
+const port = 8080;
+app.listen(port, () => console.log(`Server listening on port: ${port}`));
