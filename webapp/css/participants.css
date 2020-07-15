@@ -1,7 +1,7 @@
-/* Style Sheet for the participant page, shows participants and their filters. */
-
 body{
     font-family: Helvetica, sans-serif;
+    background-color: #BBE3CF;
+    margin: 0px;
 }
 
 /* Logo at the top left corner */
@@ -16,6 +16,35 @@ body{
     border: 1px solid #ccc;
     background-color: whitesmoke;
     width: 100%; 
-    margin: -10px;
-   
+}
+
+#content-card {
+  margin: 50px auto auto auto;
+  width: 50%;
+  border-radius: 0.5rem;
+  padding: 25px;
+  box-shadow: 5px 8px 10px rgb(145, 145, 145);
+  background-color: whitesmoke;
+}
+
+/* Each individual participant card */
+.participant-card {
+  border: 1px solid #d4ede0;
+  border-radius: 0.5rem;
+  margin: 25px;
+  padding: 25px;
+  background-color: white;
+}
+
+#card-title {
+  color: #444;
+  text-align: center;
+}
+
+.participant-name {
+  color: #444;
+}
+
+.participant-info {
+  color: rgb(145, 145, 145);
 }
