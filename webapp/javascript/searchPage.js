@@ -1,3 +1,8 @@
+window.onload = function () {
+	initMap();
+    showRestaurants();
+}
+
 /** Some Hard-coded data to display as restaurants temporarily. */
 const restaurant1 = {
   name: "Nice Cafe",
@@ -64,4 +69,28 @@ function showRestaurants() {
     restaurantDiv.appendChild(rightDiv);
     restaurantContainer.appendChild(restaurantDiv);
   });
+}
+
+// Initializes a map
+function initMap() {
+    console.log("yeah");
+	const map = new google.maps.Map(
+		document.getElementById('map'), {
+			center: {
+				lat: 46.2276,
+				lng: 2.2137
+			},
+			zoom: 6
+		});
+
+	var iconBase = 'https://maps.google.com/mapfiles/kml/shapes/';
+
+	const Marker = new google.maps.Marker({
+		position: {
+			lat: 48.8584,
+			lng: 2.2945
+		},
+		map: map,
+		title: 'Eiffel tower',
+	});
 }
