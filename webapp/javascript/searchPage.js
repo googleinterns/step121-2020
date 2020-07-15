@@ -73,7 +73,6 @@ function showRestaurants() {
 
 // Initializes a map
 function initMap() {
-    console.log("yeah");
 	const map = new google.maps.Map(
 		document.getElementById('map'), {
 			center: {
