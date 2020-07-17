@@ -114,8 +114,12 @@ body {
 /* Sectioning map to the right */
 #map {
   float: right;
-  margin: 0 1.5%;
-  width: 30%;
+  width: 28%;
+  height: 500px;
+  border: thin solid grey;
+  position: relative;
+  margin-top: 7%;
+  margin-right: 25px;
 }
 
 /* Style for top buttons: Share invite and View Particpants */
