@@ -1,4 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
+const process = require("process");
+const path = require("path");
 const express = require("express");
 const cookieSession = require("cookie-session");
 const datastore = require("./datastore");
@@ -15,7 +17,23 @@ const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
 
-app.use(express.static("static"));
+app.use(express.static("static/absolute"));
+
+function getAbsolutePath(htmlFileName) {
+  return path.join(process.cwd(), "static", htmlFileName);
+}
+
+app.get(`/create`, (_, response) => {
+  response.sendFile(getAbsolutePath("createSession.html"));
+});
+
+app.get(`/:${URL_PARAM_EVENT_ID}`, (_, response) => {
+  response.sendFile(getAbsolutePath("searchPage.html"));
+});
+
+app.get(`/:${URL_PARAM_EVENT_ID}/participants`, (_, response) => {
+  response.sendFile(getAbsolutePath("participants.html"));
+});
 
 // Parse request bodies with the json content header into JSON
 app.use(express.json());
@@ -127,6 +145,13 @@ app.post(`${PREFIX_API}/create`, async (_, response) => {
   });
 });
 
+/**
+ * Sample post body:
+ * {
+ *   name: "bob",
+ *   location: "[123, 321]"
+ * }
+ */
 app.post(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}`,
   getEvent,
@@ -173,6 +198,19 @@ app.get(
     response.json({
       status: 200,
       data: userInfo,
+    });
+  }
+);
+
+app.get(
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/participants`,
+  getEvent,
+  async (request, response) => {
+    const { event } = request;
+    const users = event.users || {};
+    response.json({
+      status: 200,
+      data: Object.values(users),
     });
   }
 );
