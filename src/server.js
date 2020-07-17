@@ -2,10 +2,11 @@ const { v4: uuidv4 } = require("uuid");
 const express = require("express");
 const cookieSession = require("cookie-session");
 const datastore = require("./datastore");
+const fetch = require("node-fetch");
+
 const app = express();
 
 const KIND_EVENT = "Event";
-
 const URL_PARAM_EVENT_ID = `eventID`;
 
 // TODO(ved): There's definitely a cleaner way to do this.
@@ -179,3 +180,95 @@ app.get(
 
 const port = 8080;
 app.listen(port, () => console.log(`Server listening on port: ${port}`));
+
+let sessionName = "Get together";
+function averageGeolocation(coords) {
+  if (coords.length === 1) {
+    return coords[0];
+  }
+  let x = 0.0;
+  let y = 0.0;
+  let z = 0.0;
+
+  for (let coord of coords) {
+    let latitude = (coord.latitude * Math.PI) / 180;
+    let longitude = (coord.longitude * Math.PI) / 180;
+
+    x += Math.cos(latitude) * Math.cos(longitude);
+    y += Math.cos(latitude) * Math.sin(longitude);
+    z += Math.sin(latitude);
+  }
+
+  let total = coords.length;
+
+  x = x / total;
+  y = y / total;
+  z = z / total;
+
+  let centralLongitude = Math.atan2(y, x);
+  let centralSquareRoot = Math.sqrt(x * x + y * y);
+  let centralLatitude = Math.atan2(z, centralSquareRoot);
+
+  return {
+    latitude: (centralLatitude * 180) / Math.PI,
+    longitude: (centralLongitude * 180) / Math.PI,
+  };
+}
+
+// Mock data; expect ~ 37.790831, -122.407169
+const sf = [
+  {
+    latitude: 37.797749,
+    longitude: -122.412147,
+  },
+  {
+    latitude: 37.789068,
+    longitude: -122.390604,
+  },
+  {
+    latitude: 37.785269,
+    longitude: -122.421975,
+  },
+];
+
+// Mock data; expect ~ 8.670552, -173.207864
+const globe = [
+  {
+    // Japan
+    latitude: 37.928969,
+    longitude: 138.979637,
+  },
+  {
+    // Nevada
+    latitude: 39.029788,
+    longitude: -119.594585,
+  },
+  {
+    // New Zealand
+    latitude: -39.298237,
+    longitude: 175.717917,
+  },
+];
+
+function getRestaurants() {
+  let lat = averageGeolocation(sf).latitude.toString();
+  let long = averageGeolocation(sf).longitude.toString();
+  let radius = "50000";
+  let type = "restaurant";
+  let minprice = "0";
+  let maxprice = "4";
+  fetch(
+    `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radius}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&keyword=cruise&key=AIzaSyDDhfcuk15Apx3i72mFSilulsPtJReGhcY`
+  )
+    .then((response) => response.json())
+    .then((data) => console.log(data));
+}
+
+getRestaurants();
+
+const port = 8080;
+app.get("/", (req, res) => res.redirect("../createSession.html"));
+app.listen(port, () =>
+  console.log(`Server listening on http://localhost:${port}`)
+);
+
