@@ -178,10 +178,6 @@ app.get(
   }
 );
 
-const port = 8080;
-app.listen(port, () => console.log(`Server listening on port: ${port}`));
-
-let sessionName = "Get together";
 function averageGeolocation(coords) {
   if (coords.length === 1) {
     return coords[0];
@@ -214,6 +210,8 @@ function averageGeolocation(coords) {
     longitude: (centralLongitude * 180) / Math.PI,
   };
 }
+
+let sessionName = "Get together";
 
 // Mock data; expect ~ 37.790831, -122.407169
 const sf = [
@@ -250,7 +248,7 @@ const globe = [
   },
 ];
 
-function getRestaurants() {
+app.get(`${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`, function () {
   let lat = averageGeolocation(sf).latitude.toString();
   let long = averageGeolocation(sf).longitude.toString();
   let radius = "50000";
@@ -259,16 +257,11 @@ function getRestaurants() {
   let maxprice = "4";
   fetch(
     `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radius}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&keyword=cruise&key=AIzaSyDDhfcuk15Apx3i72mFSilulsPtJReGhcY`
-  )
-    .then((response) => response.json())
-    .then((data) => console.log(data));
-}
-
-getRestaurants();
+  ).then((response) => response.json());
+});
 
 const port = 8080;
 app.get("/", (req, res) => res.redirect("../createSession.html"));
 app.listen(port, () =>
   console.log(`Server listening on http://localhost:${port}`)
 );
-

@@ -92,4 +92,3 @@ function initMap() {
     title: "Eiffel tower",
   });
 }
-
