@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <title>Ogene - Group Search</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDhfcuk15Apx3i72mFSilulsPtJReGhcY"></script>
-    <script src="../js/searchPage.js"></script>
     <link rel="stylesheet" href="/css/searchPage.css" />
   </head>
 
@@ -15,10 +14,7 @@
 
     <div class="top-buttons">
       <button class="share-invite">Share invite</button>
-      <button
-        class="participants"
-        onclick="window.location.href='participants.html';"
-      >
+      <button class="participants" id="participants-btn">
         Active participants: 2
       </button>
     </div>
@@ -28,16 +24,18 @@
       <div class="textb">
         <label for="fname">Name: &emsp;</label>
         <input
+          id="name-input"
           class="input"
           type="text"
           name="name"
           value=""
-          placeholder="Enter your name:"
+          placeholder="Name"
         />
       </div>
       <div class="textb">
         <label for="flocation">Address:</label>
         <input
+          id="address-input"
           class="input"
           type="text"
           name="location"
@@ -53,5 +51,7 @@
       <div id="restaurant-container"></div>
     </div>
     <div id="map"></div>
+    <script src="/js/globals.js"></script>
+    <script src="/js/searchPage.js"></script>
   </body>
 </html>

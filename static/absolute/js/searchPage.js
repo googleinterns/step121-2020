@@ -1,7 +1,73 @@
 window.onload = function () {
   initMap();
   showRestaurants();
+  document.getElementById("search-btn").addEventListener("click", async () => {
+    const nameInput = document.getElementById("name-input");
+    const name = nameInput.value;
+
+    const addressInput = document.getElementById("address-input");
+    const address = addressInput.value;
+
+    let lat = null;
+    let long = null;
+
+    if (address === "") {
+      // Use Geolocation
+      try {
+        const {
+          coords: { latitude, longitude },
+        } = await getPosition({ enableHighAccuracy: true });
+        lat = latitude;
+        long = longitude;
+      } catch (err) {
+        alert("Failed to get position, please enter address.");
+        return;
+      }
+    } else {
+      // TODO(ved): Use API to convert address --> long/lat
+      alert("This is not yet supported");
+      return;
+    }
+
+    let data;
+    try {
+      const resp = await fetch(`api/${getEventId()}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          location: [lat, long],
+        }),
+      });
+      data = await resp.json();
+    } catch (err) {
+      console.log(err);
+      alert("error posting to api");
+      return;
+    }
+
+    if (data.status !== 200) {
+      // TODO(ved): How should we display errors?
+      alert("error posting to api");
+      return;
+    }
+
+    nameInput.value = "";
+    addressInput.value = "";
+  });
+  document.getElementById("participants-btn").addEventListener("click", () => {
+    const id = getEventId();
+    window.location.href = `${window.location.origin}/${id}/participants`;
+  });
 };
+
+function getPosition(options) {
+  return new Promise((resolve, reject) =>
+    navigator.geolocation.getCurrentPosition(resolve, reject, options)
+  );
+}
 
 /** Some Hard-coded data to display as restaurants temporarily. */
 const restaurant1 = {
