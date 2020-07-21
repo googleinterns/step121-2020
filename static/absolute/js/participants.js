@@ -1,14 +1,3 @@
-// Get the event ID from the current URL
-function getEventId() {
-  // https://ogene.com/1/participants
-  const currentURL = window.location.href;
-  // https://ogene.com
-  const prefix = window.location.origin;
-  // 1/participants
-  const postfix = currentURL.slice(prefix.length + 1);
-  return parseInt(postfix.slice(0, postfix.indexOf("/")));
-}
-
 async function showParticipants() {
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/participants`)).json();
