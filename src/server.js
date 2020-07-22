@@ -159,8 +159,7 @@ app.post(
   getEvent,
   async (request, response) => {
     const { body, datastoreKey: key, event } = request;
-    const location = JSON.parse(body.location);
-    const [lat, long] = location;
+    const [lat, long] = body.location;
     const { name } = body;
     event.users = event.users || {};
     const userInfo = event.users[request.session.userID] || {};
