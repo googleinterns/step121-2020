@@ -133,7 +133,8 @@ async function getEvent(request, response, next) {
 }
 
 app.post(`${PREFIX_API}/create`, async (_, response) => {
-  const key = datastore.key([KIND_EVENT]);
+  const query = datastore.key([KIND_EVENT]).order("location");
+
   const result = await datastore.save({ key, data: { users: {} } });
   response.send({
     // Datastore automatically generates a unique id
@@ -274,14 +275,26 @@ const globe = [
 ];
 
 app.get(`${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`, function () {
-  let lat = averageGeolocation(sf).latitude.toString();
-  let long = averageGeolocation(sf).longitude.toString();
+  getEvent,
+    async (request, response) => {
+      const { event } = request;
+      const users = event.users || {};
+      response.json({
+        status: 200,
+        data: Object.values(users),
+      });
+    };
+
+  const query = datastore.createQuery("Company");
+  let location = averageGeolocation(sf).toString();
+  let lat = location.latitude.toString();
+  let long = location.longitude.toString();
   let radius = "50000";
   let type = "restaurant";
   let minprice = "0";
   let maxprice = "4";
   fetch(
-    `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radius}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&keyword=cruise&key=AIzaSyDDhfcuk15Apx3i72mFSilulsPtJReGhcY`
+    `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radius}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=APIkey`
   ).then((response) => response.json());
 });
 
@@ -291,6 +304,7 @@ app.get(
   async (request, response) => {
     const { event } = request;
     const users = event.users || {};
+    console.log(Object.values(users));
     response.json({
       status: 200,
       data: Object.values(users),
