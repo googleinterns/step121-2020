@@ -50,6 +50,7 @@ window.onload = function () {
 
     if (data.status !== 200) {
       // TODO(ved): How should we display errors?
+      console.log(data.error);
       alert("error posting to api");
       return;
     }

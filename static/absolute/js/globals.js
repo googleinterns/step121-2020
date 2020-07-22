@@ -9,7 +9,7 @@ function getEventId() {
   // 1
   const slashIdx = postfix.indexOf("/");
   if (slashIdx !== -1) {
-    return parseInt(postfix.slice(0, postfix.indexOf("/")));
+    return parseInt(postfix.slice(0, slashIdx));
   } else {
     return parseInt(postfix);
   }
