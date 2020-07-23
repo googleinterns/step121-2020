@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require("uuid");
 const process = require("process");
 const path = require("path");
 const express = require("express");
+const fromEntries = require("object.fromentries");
 const cookieSession = require("cookie-session");
 const datastore = require("./datastore");
 const app = express();
@@ -157,8 +158,7 @@ app.post(
   getEvent,
   async (request, response) => {
     const { body, datastoreKey: key, event } = request;
-    const location = JSON.parse(body.location);
-    const [lat, long] = location;
+    const [lat, long] = body.location;
     const { name } = body;
     event.users = event.users || {};
     const userInfo = event.users[request.session.userID] || {};
@@ -167,7 +167,7 @@ app.post(
       // Datastore attaches a "symbol" (https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
       // to any entities returned from a query. We don't want to store this attached metadata back into the database
       // so we remove it with Object.fromEntries
-      .save({ key, data: Object.fromEntries(Object.entries(event)) })
+      .save({ key, data: fromEntries(Object.entries(event)) })
       .then(() => {
         response.json({ status: 200 });
       })
