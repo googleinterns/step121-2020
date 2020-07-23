@@ -9,6 +9,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "node-fetch": "^2.6.0",
+    "object.fromentries": "^2.0.2",
     "uuid": "^8.2.0"
   },
   "scripts": {
