@@ -78,6 +78,7 @@ window.onload = function () {
       return;
     }
 
+    //Data was submitted successfully. We send a message to the server to then update each client with the same event ID.
     socket.emit("data submitted", eventId);
     nameInput.value = "";
     addressInput.value = "";
@@ -102,6 +103,7 @@ async function getCoordinates(address) {
   return coords;
 }
 
+//This message is recieved from the server indicating that information has been submitted, and the client needs to refresh.
 socket.on("refresh", (eventId) => {
   if (getEventId() === eventId) {
     console.log(

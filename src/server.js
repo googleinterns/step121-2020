@@ -240,7 +240,10 @@ app.get(
       const geocodeResponseStatus = geocodeResponse.status;
 
       if (geocodeResponseStatus !== "OK") {
-        console.error("Geocoding error occured. Api response status: " + geocodeResponseStatus)
+        console.error(
+          "Geocoding error occured. Api response status: " +
+            geocodeResponseStatus
+        );
         response
           .status(500)
           .json({ status: 500, error: { type: geocodeResponseStatus } });
@@ -298,9 +301,13 @@ const server = app.listen(port, () =>
   console.log(`Server listening on port: ${port}`)
 );
 
+//Attach Socket.io to the existing express server.
 const io = require("socket.io")(server);
 
+//When socket.io is connected to the server, we can listen for events.
 io.on("connection", (socket) => {
+  //This 'data submitted' message, recieved by the server, gets emitted by a client every time new user information is successfully submitted.
+  //In response, the server passes this refresh message and the event ID to let clients with the same ID know to refresh their search results.
   socket.on("data submitted", (eventID) => {
     io.emit("refresh", eventID);
   });
