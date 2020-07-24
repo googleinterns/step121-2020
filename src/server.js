@@ -216,18 +216,20 @@ app.get(
   async (request, response) => {
     const { event } = request;
     const users = event.users || {};
-    const userInput = Object.values(users);
+    const usersData = Object.values(users);
 
     if (userInput.length > 0) {
-      const lat = userInput[0].lat.toString();
-      const long = userInput[0].long.toString();
-      let radius = "50000";
-      let type = "restaurant";
-      let minprice = "0";
-      let maxprice = "4";
+        // Currently accessing the latitude and longitude of the first user for MVP
+        // TODO Chisom: Test average geolocation with multiple user data
+      const lat = usersData[0].lat.toString();
+      const long = usersData[0].long.toString();
+      const radiusMeters = "50000";
+      const type = "restaurant";
+      const minprice = "0";
+      const maxprice = "4";
       const restaurantData = await (
         await fetch(
-          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radius}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY}`
+          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
         )
       ).json();
       try {
