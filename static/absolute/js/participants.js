@@ -1,10 +1,12 @@
 const socket = io();
 
-socket.on('refresh', (eventId) => {
+socket.on("refresh", (eventId) => {
   if (getEventId() === eventId) {
-    console.log('Refresh message received from server. Updating participants page.');
+    console.log(
+      "Refresh message received from server. Updating participants page."
+    );
     showParticipants();
-  };
+  }
 });
 
 window.onload = function () {
@@ -17,7 +19,6 @@ window.onload = function () {
 };
 
 async function showParticipants() {
-  console.log("Show participants function.")
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/participants`)).json();
   if (response.status === 200) {

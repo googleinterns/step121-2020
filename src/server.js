@@ -240,7 +240,7 @@ app.get(
     try {
       response.json({
         status: 200,
-        data: geocodeResponse.results[0].geometry.location
+        data: geocodeResponse.results[0].geometry.location,
       });
     } catch (err) {
       console.error(err);
@@ -294,9 +294,6 @@ const io = require("socket.io")(server);
 
 io.on("connection", (socket) => {
   socket.on("data submitted", (eventID) => {
-    console.log(
-      "data submit message recieved from client. Emitting refresh message."
-    );
     io.emit("refresh", eventID);
   });
 });

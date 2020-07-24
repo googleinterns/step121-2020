@@ -2,7 +2,7 @@ const socket = io();
 
 window.onload = function () {
   restaurantSearch();
-  
+
   document.getElementById("search-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("name-input");
     const name = nameInput.value;
@@ -27,20 +27,26 @@ window.onload = function () {
       }
     } else {
       if (/[`!#$%\^&*+=\-\[\]\\';/{}|\\":<>\?]/.test(address)) {
-        alert("Invalid characters were entered with the address. Please remove them and try again.");
+        alert(
+          "Invalid characters were entered with the address. Please remove them and try again."
+        );
         return;
       }
 
       let formattedAddress = address.replace(" ", "%20");
       formattedAddress = formattedAddress.replace(",", "%2C");
-      const coords = await (await fetch(`/api/${formattedAddress}/geocode`)).json();
-      
+      const coords = await (
+        await fetch(`/api/${formattedAddress}/geocode`)
+      ).json();
+
       if (coords.status === 200) {
         lat = coords.data.lat;
         long = coords.data.lng;
       } else {
-        alert("We could not find the latitude and longitude of that address."
-        + "Please try again, and make sure to follow the address guidelines.");
+        alert(
+          "We could not find the latitude and longitude of that address." +
+            "Please try again, and make sure to follow the address guidelines."
+        );
         return;
       }
     }
@@ -72,7 +78,7 @@ window.onload = function () {
       return;
     }
 
-    socket.emit('data submitted', eventId);
+    socket.emit("data submitted", eventId);
     nameInput.value = "";
     addressInput.value = "";
   });
@@ -95,14 +101,16 @@ async function getCoordinates(address) {
   const coords = await (await fetch(`/api/${formattedAddress}/geocode`)).json();
   return coords;
 }
- 
-socket.on('refresh', (eventId) => {
+
+socket.on("refresh", (eventId) => {
   if (getEventId() === eventId) {
-    console.log('Refresh message received from server via Socket.io. Refreshing restaurant results.');
+    console.log(
+      "Refresh message received from server via Socket.io. Refreshing restaurant results."
+    );
     restaurantSearch();
-  };
+  }
 });
- 
+
 async function restaurantSearch() {
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
