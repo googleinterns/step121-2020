@@ -247,10 +247,10 @@ app.get(
       }
     } else {
       // Respond with empty object if there is no user location.
-      const restaurantData = {};
+      const placesApiResponse = {};
       response.json({
         status: 200,
-        data: restaurantData,
+        data: placesApiResponse,
       });
     }
   }
