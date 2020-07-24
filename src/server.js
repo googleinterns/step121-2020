@@ -227,21 +227,22 @@ app.get(
       const minprice = "0";
       const maxprice = "4";
 
-      try {
-        const restaurantData = await (
-          await fetch(
-            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
-          )
-        ).json();
-        response.json({
-          status: 200,
-          data: restaurantData,
-        });
-      } catch (err) {
-        console.error("Bad Places API interaction");
+      const placesApiResponse = await (
+        await fetch(
+          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
+        )
+      ).json();
+      const placesApiResponseStatus = placesApiResponse.status;
+      if (placesApiResponseStatus !== "OK") {
+        console.error("Places API error");
         response.status(500).json({
           status: 500,
           error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+        });
+      } else {
+        response.json({
+          status: 200,
+          data: placesApiResponse,
         });
       }
     } else {
