@@ -1,15 +1,19 @@
 const { v4: uuidv4 } = require("uuid");
 const process = require("process");
+const { env } = process;
 const path = require("path");
 const express = require("express");
 const fromEntries = require("object.fromentries");
 const cookieSession = require("cookie-session");
 const datastore = require("./datastore");
+const fetch = require("node-fetch");
+
 const app = express();
 
 const KIND_EVENT = "Event";
 
 const URL_PARAM_EVENT_ID = `eventID`;
+const URL_PARAM_ADDRESS = `address`;
 
 // TODO(ved): There's definitely a cleaner way to do this.
 const PREFIX_API = "/api";
@@ -17,12 +21,17 @@ const PREFIX_API = "/api";
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
+const ERROR_GEOCODING_FAILED = "GEOCODING_FAILED";
 
 app.use(express.static("static/absolute"));
 
 function getAbsolutePath(htmlFileName) {
   return path.join(process.cwd(), "static", htmlFileName);
 }
+
+app.get("/", (_, response) => {
+  response.redirect("/create");
+});
 
 app.get(`/create`, (_, response) => {
   response.sendFile(getAbsolutePath("createSession.html"));
@@ -215,5 +224,79 @@ app.get(
   }
 );
 
+app.get(
+  `${PREFIX_API}/:${URL_PARAM_ADDRESS}/geocode`,
+  async (request, response) => {
+    let address = request.params[URL_PARAM_ADDRESS];
+
+    let geocodeRequest =
+      "https://maps.googleapis.com/maps/api/geocode/json?address=" +
+      address +
+      "&key=" +
+      env.API_KEY;
+
+    const geocodeResponse = await (await fetch(geocodeRequest)).json();
+
+    try {
+      response.json({
+        status: 200,
+        data: geocodeResponse.results[0].geometry.location
+      });
+    } catch (err) {
+      console.error(err);
+      response
+        .status(500)
+        .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
+    }
+  }
+);
+
+/** Some Hard-coded data to display as restaurants temporarily. */
+function getRestaurants() {
+  const restaurant1 = {
+    name: "Nice Cafe",
+    address: "123 N. Street st.",
+    latLong: { lat: 37.0, lng: -122.0 },
+    rating: 5,
+    priceLevel: 2,
+    openingHours: "8:00am - 10:00pm",
+  };
+
+  const restaurant2 = {
+    name: "Bad Cafe",
+    address: "987 S. Street st.",
+    latLong: { lat: -37.0, lng: 122.0 },
+    rating: 2,
+    priceLevel: 4,
+    openingHours: "12:00am - 9:00am",
+  };
+
+  return [restaurant1, restaurant2];
+}
+
+app.get(
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`,
+  async (request, response) => {
+    const restaurants = getRestaurants();
+    response.json({
+      status: 200,
+      data: Object.values(restaurants),
+    });
+  }
+);
+
 const port = 8080;
-app.listen(port, () => console.log(`Server listening on port: ${port}`));
+const server = app.listen(port, () =>
+  console.log(`Server listening on port: ${port}`)
+);
+
+const io = require("socket.io")(server);
+
+io.on("connection", (socket) => {
+  socket.on("data submitted", (eventID) => {
+    console.log(
+      "data submit message recieved from client. Emitting refresh message."
+    );
+    io.emit("refresh", eventID);
+  });
+});

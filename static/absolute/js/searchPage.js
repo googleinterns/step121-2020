@@ -1,6 +1,8 @@
+const socket = io();
+
 window.onload = function () {
-  initMap();
-  showRestaurants();
+  restaurantSearch();
+  
   document.getElementById("search-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("name-input");
     const name = nameInput.value;
@@ -24,14 +26,29 @@ window.onload = function () {
         return;
       }
     } else {
-      // TODO(ved): Use API to convert address --> long/lat
-      alert("This is not yet supported");
-      return;
+      if (/[`!#$%\^&*+=\-\[\]\\';/{}|\\":<>\?]/.test(address)) {
+        alert("Invalid characters were entered with the address. Please remove them and try again.");
+        return;
+      }
+
+      let formattedAddress = address.replace(" ", "%20");
+      formattedAddress = formattedAddress.replace(",", "%2C");
+      const coords = await (await fetch(`/api/${formattedAddress}/geocode`)).json();
+      
+      if (coords.status === 200) {
+        lat = coords.data.lat;
+        long = coords.data.lng;
+      } else {
+        alert("We could not find the latitude and longitude of that address."
+        + "Please try again, and make sure to follow the address guidelines.");
+        return;
+      }
     }
 
     let data;
+    const eventId = getEventId();
     try {
-      const resp = await fetch(`api/${getEventId()}`, {
+      const resp = await fetch(`api/${eventId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,12 +72,14 @@ window.onload = function () {
       return;
     }
 
+    socket.emit('data submitted', eventId);
     nameInput.value = "";
     addressInput.value = "";
   });
+
   document.getElementById("participants-btn").addEventListener("click", () => {
-    const id = getEventId();
-    window.location.href = `${window.location.origin}/${id}/participants`;
+    const eventId = getEventId();
+    window.location.href = `${window.location.origin}/${eventId}/participants`;
   });
 };
 
@@ -70,25 +89,26 @@ function getPosition(options) {
   );
 }
 
-/** Some Hard-coded data to display as restaurants temporarily. */
-const restaurant1 = {
-  name: "Nice Cafe",
-  address: "123 N. Street st.",
-  latLong: { lat: 37.0, lng: -122.0 },
-  rating: 5,
-  priceLevel: 2,
-  openingHours: "8:00am - 10:00pm",
-};
-const restaurant2 = {
-  name: "Bad Cafe",
-  address: "987 S. Street st.",
-  latLong: { lat: -37.0, lng: 122.0 },
-  rating: 2,
-  priceLevel: 4,
-  openingHours: "12:00am - 9:00am",
-};
-
-const allRestaurants = [restaurant1, restaurant2];
+async function getCoordinates(address) {
+  let formattedAddress = address.replace(" ", "%20");
+  formattedAddress = formattedAddress.replace(",", "%2C");
+  const coords = await (await fetch(`/api/${formattedAddress}/geocode`)).json();
+  return coords;
+}
+ 
+socket.on('refresh', (eventId) => {
+  if (getEventId() === eventId) {
+    console.log('Refresh message received from server via Socket.io. Refreshing restaurant results.');
+    restaurantSearch();
+  };
+});
+ 
+async function restaurantSearch() {
+  const eventId = getEventId();
+  const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
+  initMap();
+  showRestaurants(response.data);
+}
 
 /**
  * Creates HTML elements for the restaurant details and adds it
@@ -97,8 +117,9 @@ const allRestaurants = [restaurant1, restaurant2];
  * For now, this function deals with hard-coded data, but this
  * can be used as a template for when we get data the Places Library results.
  */
-function showRestaurants() {
+function showRestaurants(allRestaurants) {
   const restaurantContainer = document.getElementById("restaurant-container");
+  restaurantContainer.innerHTML = "";
 
   //This will be used to create a new div for every restaurant returned by the Places Library:
   allRestaurants.forEach((restaurant) => {

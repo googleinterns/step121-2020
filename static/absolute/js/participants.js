@@ -1,10 +1,31 @@
+const socket = io();
+
+socket.on('refresh', (eventId) => {
+  if (getEventId() === eventId) {
+    console.log('Refresh message received from server. Updating participants page.');
+    showParticipants();
+  };
+});
+
+window.onload = function () {
+  document
+    .getElementById("participant-back-btn")
+    .addEventListener("click", () => {
+      const eventId = getEventId();
+      window.location.href = `${window.location.origin}/${eventId}`;
+    });
+};
+
 async function showParticipants() {
+  console.log("Show participants function.")
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/participants`)).json();
   if (response.status === 200) {
     const participantContainer = document.getElementById(
       "participant-container"
     );
+    participantContainer.innerHTML = "";
+
     const participants = response.data;
     participants
       .map((p) => ({ ...p, location: `${p.lat},${p.long}` }))
