@@ -20,6 +20,7 @@ const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
 const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
+const FETCH_ERROR = "FETCH_ERROR";
 
 app.use(express.static("static/absolute"));
 
@@ -227,22 +228,33 @@ app.get(
       const minprice = "0";
       const maxprice = "4";
 
-      const placesApiResponse = await (
-        await fetch(
-          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
-        )
-      ).json();
-      const placesApiResponseStatus = placesApiResponse.status;
-      if (placesApiResponseStatus !== "OK") {
-        console.error("Places API error Response: " + placesApiResponseStatus);
+      // Try for invalid Json Response.
+      try {
+        const placesApiResponse = await (
+          await fetch(
+            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
+          )
+        ).json();
+
+        const { status } = placesApiResponse;
+        if (status !== "OK") {
+          console.error("Places API error Response: " + status);
+          response.status(500).json({
+            status: 500,
+            error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+          });
+        } else {
+          response.json({
+            status: 200,
+            data: placesApiResponse,
+          });
+        }
+        // Catch Fetch error
+      } catch (err) {
+        console.error("Fetch error");
         response.status(500).json({
           status: 500,
-          error: { type: ERROR_BAD_PLACES_API_INTERACTION },
-        });
-      } else {
-        response.json({
-          status: 200,
-          data: placesApiResponse,
+          error: { type: FETCH_ERROR },
         });
       }
     } else {
