@@ -20,7 +20,6 @@ const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
 const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
-const ERROR_USERS = "UNDEFINED_USER_LOCATION";
 
 app.use(express.static("static/absolute"));
 
@@ -216,23 +215,24 @@ app.get(
   async (request, response) => {
     const { event } = request;
     const users = event.users || {};
-    const usersData = Object.values(users);
+    const userData = Object.values(users);
 
-    if (userInput.length > 0) {
-        // Currently accessing the latitude and longitude of the first user for MVP
-        // TODO Chisom: Test average geolocation with multiple user data
-      const lat = usersData[0].lat.toString();
-      const long = usersData[0].long.toString();
+    if (userData.length > 0) {
+      // Currently accessing the latitude and longitude of the first user (MVP).
+      // TODO (Chisom): Test average geolocation with multiple user locations.
+      const lat = userData[0].lat.toString();
+      const long = userData[0].long.toString();
       const radiusMeters = "50000";
       const type = "restaurant";
       const minprice = "0";
       const maxprice = "4";
-      const restaurantData = await (
-        await fetch(
-          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
-        )
-      ).json();
+
       try {
+        const restaurantData = await (
+          await fetch(
+            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
+          )
+        ).json();
         response.json({
           status: 200,
           data: restaurantData,
@@ -245,10 +245,11 @@ app.get(
         });
       }
     } else {
-      console.error("Failed to get restaurants. Undefined Location.");
-      response.status(500).json({
-        status: 500,
-        error: { type: ERROR_USERS },
+      // Respond with empty object if there is no user location.
+      const restaurantData = {};
+      response.json({
+        status: 200,
+        data: restaurantData,
       });
     }
   }
