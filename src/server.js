@@ -238,7 +238,7 @@ app.get(
 
         const { status } = placesApiResponse;
         if (status !== "OK") {
-          console.error("Places API error Response: " + status);
+          console.error("Places API error. Status: " + status);
           response.status(500).json({
             status: 500,
             error: { type: ERROR_BAD_PLACES_API_INTERACTION },
