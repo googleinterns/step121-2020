@@ -6,6 +6,7 @@ const fromEntries = require("object.fromentries");
 const cookieSession = require("cookie-session");
 const datastore = require("./datastore");
 const fetch = require("node-fetch");
+const { env } = process;
 
 const app = express();
 
@@ -18,12 +19,18 @@ const PREFIX_API = "/api";
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
+const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
+const ERROR_USERS = "UNDEFINED_USER_LOCATION";
 
 app.use(express.static("static/absolute"));
 
 function getAbsolutePath(htmlFileName) {
   return path.join(process.cwd(), "static", htmlFileName);
 }
+
+app.get("/", (_, response) => {
+  response.redirect("/create");
+});
 
 app.get(`/create`, (_, response) => {
   response.sendFile(getAbsolutePath("createSession.html"));
@@ -134,8 +141,7 @@ async function getEvent(request, response, next) {
 }
 
 app.post(`${PREFIX_API}/create`, async (_, response) => {
-  const query = datastore.key([KIND_EVENT]).order("location");
-
+  const key = datastore.key([KIND_EVENT]);
   const result = await datastore.save({ key, data: { users: {} } });
   response.send({
     // Datastore automatically generates a unique id
@@ -204,99 +210,47 @@ app.get(
   }
 );
 
-function averageGeolocation(coords) {
-  if (coords.length === 1) {
-    return coords[0];
-  }
-  let x = 0.0;
-  let y = 0.0;
-  let z = 0.0;
-
-  for (let coord of coords) {
-    let latitude = (coord.latitude * Math.PI) / 180;
-    let longitude = (coord.longitude * Math.PI) / 180;
-
-    x += Math.cos(latitude) * Math.cos(longitude);
-    y += Math.cos(latitude) * Math.sin(longitude);
-    z += Math.sin(latitude);
-  }
-
-  let total = coords.length;
-
-  x = x / total;
-  y = y / total;
-  z = z / total;
-
-  let centralLongitude = Math.atan2(y, x);
-  let centralSquareRoot = Math.sqrt(x * x + y * y);
-  let centralLatitude = Math.atan2(z, centralSquareRoot);
-
-  return {
-    latitude: (centralLatitude * 180) / Math.PI,
-    longitude: (centralLongitude * 180) / Math.PI,
-  };
-}
-
-let sessionName = "Get together";
-
-// Mock data; expect ~ 37.790831, -122.407169
-const sf = [
-  {
-    latitude: 37.797749,
-    longitude: -122.412147,
-  },
-  {
-    latitude: 37.789068,
-    longitude: -122.390604,
-  },
-  {
-    latitude: 37.785269,
-    longitude: -122.421975,
-  },
-];
-
-// Mock data; expect ~ 8.670552, -173.207864
-const globe = [
-  {
-    // Japan
-    latitude: 37.928969,
-    longitude: 138.979637,
-  },
-  {
-    // Nevada
-    latitude: 39.029788,
-    longitude: -119.594585,
-  },
-  {
-    // New Zealand
-    latitude: -39.298237,
-    longitude: 175.717917,
-  },
-];
-
-app.get(`${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`, function () {
+app.get(
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`,
   getEvent,
-    async (request, response) => {
-      const { event } = request;
-      const users = event.users || {};
-      response.json({
-        status: 200,
-        data: Object.values(users),
-      });
-    };
+  async (request, response) => {
+    const { event } = request;
+    const users = event.users || {};
+    const userInput = Object.values(users);
 
-  const query = datastore.createQuery("Company");
-  let location = averageGeolocation(sf).toString();
-  let lat = location.latitude.toString();
-  let long = location.longitude.toString();
-  let radius = "50000";
-  let type = "restaurant";
-  let minprice = "0";
-  let maxprice = "4";
-  fetch(
-    `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radius}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=APIkey`
-  ).then((response) => response.json());
-});
+    if (userInput.length > 0) {
+      const lat = userInput[0].lat.toString();
+      const long = userInput[0].long.toString();
+      let radius = "50000";
+      let type = "restaurant";
+      let minprice = "0";
+      let maxprice = "4";
+      const restarantData = await (
+        await fetch(
+          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radius}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY}`
+        )
+      ).json();
+      try {
+        response.json({
+          status: 200,
+          data: restarantData,
+        });
+      } catch (err) {
+        console.error("Bad Places API interaction");
+        response.status(500).json({
+          status: 500,
+          error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+        });
+      }
+    } else {
+      console.error("Failed to get restaurants. Undefined Location.");
+      response.status(500).json({
+        status: 500,
+        error: { type: ERROR_USERS },
+      });
+    }
+  }
+);
 
 app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/participants`,
@@ -304,7 +258,6 @@ app.get(
   async (request, response) => {
     const { event } = request;
     const users = event.users || {};
-    console.log(Object.values(users));
     response.json({
       status: 200,
       data: Object.values(users),
@@ -313,7 +266,6 @@ app.get(
 );
 
 const port = 8080;
-app.get("/", (req, res) => res.redirect("../createSession.html"));
 app.listen(port, () =>
   console.log(`Server listening on http://localhost:${port}`)
 );
