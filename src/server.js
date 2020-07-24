@@ -235,13 +235,21 @@ app.get(
       "&key=" +
       env.API_KEY;
 
-    const geocodeResponse = await (await fetch(geocodeRequest)).json();
-
     try {
-      response.json({
-        status: 200,
-        data: geocodeResponse.results[0].geometry.location,
-      });
+      const geocodeResponse = await (await fetch(geocodeRequest)).json();
+      const geocodeResponseStatus = geocodeResponse.status;
+
+      if (geocodeResponseStatus !== "OK") {
+        console.error("Geocoding error occured. Api response status: " + geocodeResponseStatus)
+        response
+          .status(500)
+          .json({ status: 500, error: { type: geocodeResponseStatus } });
+      } else {
+        response.json({
+          status: 200,
+          data: geocodeResponse.results[0].geometry.location,
+        });
+      }
     } catch (err) {
       console.error(err);
       response
