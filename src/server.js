@@ -225,7 +225,7 @@ app.get(
       let type = "restaurant";
       let minprice = "0";
       let maxprice = "4";
-      const restarantData = await (
+      const restaurantData = await (
         await fetch(
           `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radius}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY}`
         )
@@ -233,7 +233,7 @@ app.get(
       try {
         response.json({
           status: 200,
-          data: restarantData,
+          data: restaurantData,
         });
       } catch (err) {
         console.error("Bad Places API interaction");
