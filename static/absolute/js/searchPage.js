@@ -27,17 +27,9 @@ window.onload = function () {
         return;
       }
     } else {
-      if (/[`!#@$%\^&*+=\-()\[\]\\';/{}|":<>\?]/.test(address)) {
-        alert(
-          "Invalid characters were entered with the address. Please remove them and try again."
-        );
-        return;
-      }
-
-      let formattedAddress = address.replace(" ", "%20");
-      formattedAddress = formattedAddress.replace(",", "%2C");
+      let encodedAddress = encodeURIComponent(address);
       const coords = await (
-        await fetch(`/api/${formattedAddress}/geocode`)
+        await fetch(`/api/${encodedAddress}/geocode`)
       ).json();
 
       if (coords.status === 200) {
@@ -45,8 +37,7 @@ window.onload = function () {
         long = coords.data.lng;
       } else {
         alert(
-          "We could not find the latitude and longitude of that address." +
-            "Please try again, and make sure to follow the address character guidelines."
+          "We could not find the latitude and longitude of that address."
         );
         return;
       }

@@ -230,7 +230,7 @@ app.get(
   async (request, response) => {
     const address = request.params[URL_PARAM_ADDRESS];
 
-    if (/[`!#@$%\^&*+=\-()\[\]\\';/{}|":<>\?]/.test(address)) {
+    if (/[`!,.#@$\^&*+=\-()\[\]\\';/{}|":<>\?]/.test(address)) {
       console.error("Geocode api called with invalid characters.")
       response
         .status(400)
@@ -241,7 +241,7 @@ app.get(
       "https://maps.googleapis.com/maps/api/geocode/json?address=" +
       address +
       "&key=" +
-      env.API_KEY;
+      env.API_KEY_GEOCODE;
 
     try {
       const geocodeResponse = await (await fetch(geocodeRequest)).json();
