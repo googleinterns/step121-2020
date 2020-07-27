@@ -5,10 +5,12 @@ const express = require("express");
 const fromEntries = require("object.fromentries");
 const cookieSession = require("cookie-session");
 const datastore = require("./datastore");
+const fetch = require("node-fetch");
+const { env } = process;
+
 const app = express();
 
 const KIND_EVENT = "Event";
-
 const URL_PARAM_EVENT_ID = `eventID`;
 
 // TODO(ved): There's definitely a cleaner way to do this.
@@ -17,12 +19,17 @@ const PREFIX_API = "/api";
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
+const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
 
 app.use(express.static("static/absolute"));
 
 function getAbsolutePath(htmlFileName) {
   return path.join(process.cwd(), "static", htmlFileName);
 }
+
+app.get("/", (_, response) => {
+  response.redirect("/create");
+});
 
 app.get(`/create`, (_, response) => {
   response.sendFile(getAbsolutePath("createSession.html"));
@@ -203,6 +210,64 @@ app.get(
 );
 
 app.get(
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`,
+  getEvent,
+  async (request, response) => {
+    const { event } = request;
+    const users = event.users || {};
+    const userData = Object.values(users);
+
+    if (userData.length > 0) {
+      // Currently accessing the latitude and longitude of the first user (MVP).
+      // TODO (Chisom): Test average geolocation with multiple user locations.
+      const lat = userData[0].lat.toString();
+      const long = userData[0].long.toString();
+      const radiusMeters = "50000";
+      const type = "restaurant";
+      const minprice = "0";
+      const maxprice = "4";
+
+      // Try for invalid Json Response.
+      try {
+        const placesApiResponse = await (
+          await fetch(
+            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
+          )
+        ).json();
+
+        const { status } = placesApiResponse;
+        if (status !== "OK") {
+          console.error("Places API error. Status: " + status);
+          response.status(500).json({
+            status: 500,
+            error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+          });
+        } else {
+          response.json({
+            status: 200,
+            data: placesApiResponse,
+          });
+        }
+        // Catch Fetch error
+      } catch (err) {
+        console.error("Fetch error");
+        response.status(500).json({
+          status: 500,
+          error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+        });
+      }
+    } else {
+      // Respond with empty object if there is no user location.
+      const placesApiResponse = {};
+      response.json({
+        status: 200,
+        data: placesApiResponse,
+      });
+    }
+  }
+);
+
+app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/participants`,
   getEvent,
   async (request, response) => {
@@ -216,4 +281,6 @@ app.get(
 );
 
 const port = 8080;
-app.listen(port, () => console.log(`Server listening on port: ${port}`));
+app.listen(port, () =>
+  console.log(`Server listening on http://localhost:${port}`)
+);
