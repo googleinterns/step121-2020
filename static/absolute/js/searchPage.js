@@ -4,7 +4,6 @@ window.onload = function () {
   document.getElementById("search-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("name-input");
     const name = nameInput.value;
-
     const addressInput = document.getElementById("address-input");
     const address = addressInput.value;
 
@@ -54,7 +53,7 @@ window.onload = function () {
       alert("error posting to api");
       return;
     }
-
+    initMap();
     nameInput.value = "";
     addressInput.value = "";
   });
@@ -140,22 +139,32 @@ function showRestaurants() {
   });
 }
 
-// Initializes a map
-function initMap() {
-  const map = new google.maps.Map(document.getElementById("map"), {
-    center: {
-      lat: 46.2276,
-      lng: 2.2137,
-    },
-    zoom: 6,
-  });
+// Initializes a Map.
+async function initMap() {
+  const eventId = getEventId();
+  const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
 
-  const Marker = new google.maps.Marker({
-    position: {
-      lat: 48.8584,
-      lng: 2.2945,
-    },
-    map: map,
-    title: "Eiffel tower",
-  });
+  // Checks if API response is successful and data is not an empty object.
+  // Data could be empty in the case where there are no user locations in the database.
+  if (response.status === 200 && Object.keys(response.data).length !== 0) {
+    const map = new google.maps.Map(document.getElementById("map"), {
+      // Centers Map around average geolocation.
+      center: {
+        lat: response.location.latitude,
+        lng: response.location.longitude,
+      },
+      zoom: 10,
+    });
+    const restaurants = response.data.results;
+    restaurants.forEach((restaurant) => {
+      new google.maps.Marker({
+        position: {
+          lat: restaurant.geometry.location.lat,
+          lng: restaurant.geometry.location.lng,
+        },
+        map: map,
+        title: restaurant.name,
+      });
+    });
+  }
 }

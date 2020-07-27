@@ -1,6 +1,7 @@
 body {
   font-family: Helvetica, sans-serif;
   margin: 0px;
+  
 }
 
 /* Banner at top of page contains logo */
@@ -19,7 +20,7 @@ body {
 
 /* Input form i.e for name, location, etc. */
 #input-form {
-  margin-left: auto;
+  margin-left: 25px;
   margin-right: auto;
   width: 50%;
   text-align: left;
@@ -110,17 +111,17 @@ body {
   text-align: right;
   color: #444;
 }
-
 /* Sectioning map to the right */
 #map {
   float: right;
   width: 28%;
-  height: 500px;
+  height: 800px;
   border: thin solid grey;
   position: relative;
   margin-top: 7%;
   margin-right: 25px;
 }
+
 
 /* Style for top buttons: Share invite and View Particpants */
 .top-buttons {
