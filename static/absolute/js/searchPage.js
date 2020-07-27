@@ -35,7 +35,7 @@ window.onload = function () {
         lat = coords.data.lat;
         long = coords.data.lng;
       } else {
-        alert("We could not find the latitude and longitude of that address.");
+        alert("We could not find the latitude and longitude of that address. Please check your address for misspellings.");
         return;
       }
     }
@@ -127,6 +127,7 @@ function showRestaurants(allRestaurants) {
     restaurantContainer.appendChild(instructions);
     return;
   }
+  
   restaurantContainer.innerHTML = "";
 
   //This will be used to create a new div for every restaurant returned by the Places Library:

@@ -19,7 +19,6 @@ const PREFIX_API = "/api";
 
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
-const ERROR_INVALID_ADDRESS = "ADDRESS_USES_INVALID_CHARACTERS";
 const ERROR_BAD_UUID = "BAD_UUID";
 const ERROR_GEOCODING_FAILED = "GEOCODING_FAILED";
 const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
@@ -309,6 +308,7 @@ app.get(
       } else {
         response.json({
           status: 200,
+          //TODO (Asha): Display the location (and other user information) currently used the user in case they want to change it. This will be helpful if the most relevent geocoding response is not the one the user wants.
           data: geocodeResponse.results[0].geometry.location,
         });
       }
