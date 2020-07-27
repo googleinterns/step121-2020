@@ -81,6 +81,11 @@ body {
   color: #444;
 }
 
+.search-instructions {
+  color: rgb(145, 145, 145);
+  font-size: 1.5em;
+}
+
 /* Individual cards for each restaurant result */
 .restaurant-card {
   display: grid;

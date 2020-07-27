@@ -27,7 +27,8 @@ window.onload = function () {
         return;
       }
     } else {
-      let encodedAddress = encodeURIComponent(address);
+      let encodedAddress = encodeAddress(address);
+      console.log(encodedAddress);
       const coords = await (
         await fetch(`/api/${encodedAddress}/geocode`)
       ).json();
@@ -36,9 +37,7 @@ window.onload = function () {
         lat = coords.data.lat;
         long = coords.data.lng;
       } else {
-        alert(
-          "We could not find the latitude and longitude of that address."
-        );
+        alert("We could not find the latitude and longitude of that address.");
         return;
       }
     }
@@ -88,11 +87,14 @@ function getPosition(options) {
   );
 }
 
-async function getCoordinates(address) {
-  let formattedAddress = address.replace(" ", "%20");
-  formattedAddress = formattedAddress.replace(",", "%2C");
-  const coords = await (await fetch(`/api/${formattedAddress}/geocode`)).json();
-  return coords;
+function encodeAddress(address) {
+  let formattedAddress = encodeURIComponent(address);
+  formattedAddress = formattedAddress.replace("!", "%21");
+  formattedAddress = formattedAddress.replace("*", "%2A");
+  formattedAddress = formattedAddress.replace("'", "%27");
+  formattedAddress = formattedAddress.replace("(", "%28");
+  formattedAddress = formattedAddress.replace(")", "%29");
+  return formattedAddress;
 }
 
 //This message is recieved from the server indicating that information has been submitted, and the client needs to refresh.
@@ -106,6 +108,11 @@ socket.on("refresh", () => {
 async function restaurantSearch() {
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
+  if (response.status !== 200) {
+    console.log("Error fetching restaurants: " + response.error);
+    return;
+  }
+
   initMap();
   showRestaurants(response.data);
 }
@@ -119,10 +126,23 @@ async function restaurantSearch() {
  */
 function showRestaurants(allRestaurants) {
   const restaurantContainer = document.getElementById("restaurant-container");
+
+  if (!allRestaurants.hasOwnProperty("results")) {
+    let instructions = document.createElement("p");
+    instructions.classList.add("search-instructions");
+    instructions.appendChild(
+      document.createTextNode(
+        "No one has added their information yet! Fill out the form above to start seeing some results."
+      )
+    );
+
+    restaurantContainer.appendChild(instructions);
+    return;
+  }
   restaurantContainer.innerHTML = "";
 
   //This will be used to create a new div for every restaurant returned by the Places Library:
-  allRestaurants.forEach((restaurant) => {
+  allRestaurants.results.forEach((restaurant) => {
     let restaurantDiv = document.createElement("div");
     restaurantDiv.classList.add("restaurant-card");
 
@@ -131,15 +151,19 @@ function showRestaurants(allRestaurants) {
 
     let name = document.createElement("h2");
     name.classList.add("restaurant-name");
-    name.appendChild(document.createTextNode(restaurant.name));
+    let restaurantName = restaurant.hasOwnProperty("name")
+      ? restaurant.name
+      : "";
+    name.appendChild(document.createTextNode(restaurantName));
     leftDiv.appendChild(name);
 
-    let location = document.createElement("p");
-    location.classList.add("restaurant-info");
-    location.appendChild(
-      document.createTextNode("Rating: " + restaurant.rating)
-    );
-    leftDiv.appendChild(location);
+    let rating = document.createElement("p");
+    rating.classList.add("restaurant-info");
+    let restaurantRating = restaurant.hasOwnProperty("rating")
+      ? restaurant.rating
+      : "Unknown";
+    rating.appendChild(document.createTextNode("Rating: " + restaurantRating));
+    leftDiv.appendChild(rating);
 
     restaurantDiv.appendChild(leftDiv);
 
@@ -148,12 +172,20 @@ function showRestaurants(allRestaurants) {
 
     let address = document.createElement("p");
     address.classList.add("restaurant-basic-info");
-    address.appendChild(document.createTextNode(restaurant.address));
+    let restaurantVicinity = restaurant.hasOwnProperty("vicinity")
+      ? restaurant.vicinity
+      : "";
+    address.appendChild(document.createTextNode(restaurantVicinity));
     rightDiv.appendChild(address);
 
     let openingHours = document.createElement("p");
     openingHours.classList.add("restaurant-basic-info");
-    openingHours.appendChild(document.createTextNode(restaurant.openingHours));
+    let restaurantHours = restaurant.hasOwnProperty("opening_hours")
+      ? restaurant.opening_hours
+      : "Unknown";
+    openingHours.appendChild(
+      document.createTextNode("Open Now: " + Object.values(restaurantHours))
+    );
     rightDiv.appendChild(openingHours);
 
     restaurantDiv.appendChild(rightDiv);

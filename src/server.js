@@ -1,17 +1,16 @@
 const { v4: uuidv4 } = require("uuid");
 const process = require("process");
-const { env } = process;
 const path = require("path");
 const express = require("express");
 const fromEntries = require("object.fromentries");
 const cookieSession = require("cookie-session");
 const datastore = require("./datastore");
 const fetch = require("node-fetch");
+const { env } = process;
 
 const app = express();
 
 const KIND_EVENT = "Event";
-
 const URL_PARAM_EVENT_ID = `eventID`;
 const URL_PARAM_ADDRESS = `address`;
 
@@ -23,6 +22,7 @@ const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_INVALID_ADDRESS = "ADDRESS_USES_INVALID_CHARACTERS";
 const ERROR_BAD_UUID = "BAD_UUID";
 const ERROR_GEOCODING_FAILED = "GEOCODING_FAILED";
+const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
 
 app.use(express.static("static/absolute"));
 
@@ -213,6 +213,64 @@ app.get(
 );
 
 app.get(
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`,
+  getEvent,
+  async (request, response) => {
+    const { event } = request;
+    const users = event.users || {};
+    const userData = Object.values(users);
+
+    if (userData.length > 0) {
+      // Currently accessing the latitude and longitude of the first user (MVP).
+      // TODO (Chisom): Test average geolocation with multiple user locations.
+      const lat = userData[0].lat.toString();
+      const long = userData[0].long.toString();
+      const radiusMeters = "50000";
+      const type = "restaurant";
+      const minprice = "0";
+      const maxprice = "4";
+
+      // Try for invalid Json Response.
+      try {
+        const placesApiResponse = await (
+          await fetch(
+            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
+          )
+        ).json();
+
+        const { status } = placesApiResponse;
+        if (status !== "OK") {
+          console.error("Places API error. Status: " + status);
+          response.status(500).json({
+            status: 500,
+            error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+          });
+        } else {
+          response.json({
+            status: 200,
+            data: placesApiResponse,
+          });
+        }
+        // Catch Fetch error
+      } catch (err) {
+        console.error("Fetch error");
+        response.status(500).json({
+          status: 500,
+          error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+        });
+      }
+    } else {
+      // Respond with empty object if there is no user location.
+      const placesApiResponse = {};
+      response.json({
+        status: 200,
+        data: placesApiResponse,
+      });
+    }
+  }
+);
+
+app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/participants`,
   getEvent,
   async (request, response) => {
@@ -230,8 +288,8 @@ app.get(
   async (request, response) => {
     const address = request.params[URL_PARAM_ADDRESS];
 
-    if (/[`!,.#@$\^&*+=\-()\[\]\\';/{}|":<>\?]/.test(address)) {
-      console.error("Geocode api called with invalid characters.")
+    if (/[`!,#@$\^&*+=()\[\]\\';/{}|":<>\?]/.test(address)) {
+      console.error("Geocode api called with invalid characters.");
       response
         .status(400)
         .json({ status: 400, error: { type: ERROR_INVALID_ADDRESS } });
@@ -270,43 +328,9 @@ app.get(
   }
 );
 
-/** Some Hard-coded data to display as restaurants temporarily. */
-function getRestaurants() {
-  const restaurant1 = {
-    name: "Nice Cafe",
-    address: "123 N. Street st.",
-    latLong: { lat: 37.0, lng: -122.0 },
-    rating: 5,
-    priceLevel: 2,
-    openingHours: "8:00am - 10:00pm",
-  };
-
-  const restaurant2 = {
-    name: "Bad Cafe",
-    address: "987 S. Street st.",
-    latLong: { lat: -37.0, lng: 122.0 },
-    rating: 2,
-    priceLevel: 4,
-    openingHours: "12:00am - 9:00am",
-  };
-
-  return [restaurant1, restaurant2];
-}
-
-app.get(
-  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`,
-  async (request, response) => {
-    const restaurants = getRestaurants();
-    response.json({
-      status: 200,
-      data: Object.values(restaurants),
-    });
-  }
-);
-
 const port = 8080;
 const server = app.listen(port, () =>
-  console.log(`Server listening on port: ${port}`)
+  console.log(`Server listening on http://localhost:${port}`)
 );
 
 //Attach Socket.io to the existing express server.
