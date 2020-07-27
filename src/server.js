@@ -286,14 +286,7 @@ app.get(
 app.get(
   `${PREFIX_API}/:${URL_PARAM_ADDRESS}/geocode`,
   async (request, response) => {
-    const address = request.params[URL_PARAM_ADDRESS];
-
-    if (/[`!,#@$\^&*+=()\[\]\\';/{}|":<>\?]/.test(address)) {
-      console.error("Geocode api called with invalid characters.");
-      response
-        .status(400)
-        .json({ status: 400, error: { type: ERROR_INVALID_ADDRESS } });
-    }
+    const address = encodeAddress(request.params[URL_PARAM_ADDRESS]);
 
     const geocodeRequest =
       "https://maps.googleapis.com/maps/api/geocode/json?address=" +
@@ -327,6 +320,16 @@ app.get(
     }
   }
 );
+
+function encodeAddress(address) {
+  let formattedAddress = encodeURIComponent(address);
+  formattedAddress = formattedAddress.replace("!", "%21");
+  formattedAddress = formattedAddress.replace("*", "%2A");
+  formattedAddress = formattedAddress.replace("'", "%27");
+  formattedAddress = formattedAddress.replace("(", "%28");
+  formattedAddress = formattedAddress.replace(")", "%29");
+  return formattedAddress;
+}
 
 const port = 8080;
 const server = app.listen(port, () =>

@@ -27,10 +27,8 @@ window.onload = function () {
         return;
       }
     } else {
-      let encodedAddress = encodeAddress(address);
-      console.log(encodedAddress);
       const coords = await (
-        await fetch(`/api/${encodedAddress}/geocode`)
+        await fetch(`/api/${address}/geocode`)
       ).json();
 
       if (coords.status === 200) {
@@ -42,7 +40,7 @@ window.onload = function () {
       }
     }
 
-    let data;
+    let postResponse;
     const eventId = getEventId();
     try {
       const resp = await fetch(`api/${eventId}`, {
@@ -55,16 +53,16 @@ window.onload = function () {
           location: [lat, long],
         }),
       });
-      data = await resp.json();
+      postResponse = await resp.json();
     } catch (err) {
       console.log(err);
       alert("error posting to api");
       return;
     }
 
-    if (data.status !== 200) {
+    if (postResponse.status !== 200) {
       // TODO(ved): How should we display errors?
-      console.log(data.error);
+      console.log(postResponse.error);
       alert("error posting to api");
       return;
     }
@@ -85,16 +83,6 @@ function getPosition(options) {
   return new Promise((resolve, reject) =>
     navigator.geolocation.getCurrentPosition(resolve, reject, options)
   );
-}
-
-function encodeAddress(address) {
-  let formattedAddress = encodeURIComponent(address);
-  formattedAddress = formattedAddress.replace("!", "%21");
-  formattedAddress = formattedAddress.replace("*", "%2A");
-  formattedAddress = formattedAddress.replace("'", "%27");
-  formattedAddress = formattedAddress.replace("(", "%28");
-  formattedAddress = formattedAddress.replace(")", "%29");
-  return formattedAddress;
 }
 
 //This message is recieved from the server indicating that information has been submitted, and the client needs to refresh.
