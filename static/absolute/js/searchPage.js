@@ -116,7 +116,7 @@ async function restaurantSearch() {
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
   initMap();
-  showRestaurants(response.data.results);
+  showRestaurants(response.data);
 }
 
 /**

@@ -1,12 +1,11 @@
 const socket = io();
+socket.emit("join", getEventId());
 
-socket.on("refresh", (eventId) => {
-  if (getEventId() === eventId) {
-    console.log(
-      "Refresh message received from server. Updating participants page."
-    );
-    showParticipants();
-  }
+socket.on("refresh", () => {
+  console.log(
+    "Refresh message received from server. Updating participants page."
+  );
+  showParticipants();
 });
 
 window.onload = function () {

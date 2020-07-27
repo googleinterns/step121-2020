@@ -52,7 +52,8 @@ app.use(
   cookieSession({
     name: "session",
     keys: ["secret1"],
-    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+    maxAge: 10
+    //maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   })
 );
 
