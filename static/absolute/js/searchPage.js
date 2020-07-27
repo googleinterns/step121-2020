@@ -27,7 +27,7 @@ window.onload = function () {
         return;
       }
     } else {
-      if (/[`!#$%\^&*+=\-\[\]\\';/{}|\\":<>\?]/.test(address)) {
+      if (/[`!#@$%\^&*+=\-()\[\]\\';/{}|":<>\?]/.test(address)) {
         alert(
           "Invalid characters were entered with the address. Please remove them and try again."
         );
@@ -46,7 +46,7 @@ window.onload = function () {
       } else {
         alert(
           "We could not find the latitude and longitude of that address." +
-            "Please try again, and make sure to follow the address guidelines."
+            "Please try again, and make sure to follow the address character guidelines."
         );
         return;
       }

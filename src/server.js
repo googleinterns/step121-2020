@@ -20,6 +20,7 @@ const PREFIX_API = "/api";
 
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
+const ERROR_INVALID_ADDRESS = "ADDRESS_USES_INVALID_CHARACTERS";
 const ERROR_BAD_UUID = "BAD_UUID";
 const ERROR_GEOCODING_FAILED = "GEOCODING_FAILED";
 
@@ -228,6 +229,13 @@ app.get(
   `${PREFIX_API}/:${URL_PARAM_ADDRESS}/geocode`,
   async (request, response) => {
     const address = request.params[URL_PARAM_ADDRESS];
+
+    if (/[`!#@$%\^&*+=\-()\[\]\\';/{}|":<>\?]/.test(address)) {
+      console.error("Geocode api called with invalid characters.")
+      response
+        .status(400)
+        .json({ status: 400, error: { type: ERROR_INVALID_ADDRESS } });
+    }
 
     const geocodeRequest =
       "https://maps.googleapis.com/maps/api/geocode/json?address=" +
