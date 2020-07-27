@@ -227,9 +227,9 @@ app.get(
 app.get(
   `${PREFIX_API}/:${URL_PARAM_ADDRESS}/geocode`,
   async (request, response) => {
-    let address = request.params[URL_PARAM_ADDRESS];
+    const address = request.params[URL_PARAM_ADDRESS];
 
-    let geocodeRequest =
+    const geocodeRequest =
       "https://maps.googleapis.com/maps/api/geocode/json?address=" +
       address +
       "&key=" +
@@ -306,9 +306,14 @@ const io = require("socket.io")(server);
 
 //When socket.io is connected to the server, we can listen for events.
 io.on("connection", (socket) => {
-  //This 'data submitted' message, recieved by the server, gets emitted by a client every time new user information is successfully submitted.
-  //In response, the server passes this refresh message and the event ID to let clients with the same ID know to refresh their search results.
-  socket.on("data submitted", (eventID) => {
-    io.emit("refresh", eventID);
+  //Add client socket to a room based on the session ID. This will allow only clients with the same ID to communicate.
+  socket.on("join", (eventId) => {
+    socket.join(eventId);
+  });
+
+  //This message is received when new user information is successfully added.
+  //In response, the server passes a refresh message to let clients in the same room refresh.
+  socket.on("data submitted", (eventId) => {
+    io.in(eventId).emit("refresh");
   });
 });

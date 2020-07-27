@@ -1,4 +1,5 @@
 const socket = io();
+socket.emit("join", getEventId());
 
 window.onload = function () {
   restaurantSearch();
@@ -104,20 +105,18 @@ async function getCoordinates(address) {
 }
 
 //This message is recieved from the server indicating that information has been submitted, and the client needs to refresh.
-socket.on("refresh", (eventId) => {
-  if (getEventId() === eventId) {
-    console.log(
-      "Refresh message received from server via Socket.io. Refreshing restaurant results."
-    );
-    restaurantSearch();
-  }
+socket.on("refresh", () => {
+  console.log(
+    "Refresh message received from server via Socket.io. Refreshing restaurant results."
+  );
+  restaurantSearch();
 });
 
 async function restaurantSearch() {
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
   initMap();
-  showRestaurants(response.data);
+  showRestaurants(response.data.results);
 }
 
 /**
