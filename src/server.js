@@ -306,6 +306,7 @@ app.get(
           .status(500)
           .json({ status: 500, error: { type: geocodeResponseStatus } });
       } else {
+        console.log(geocodeResponse.results);
         response.json({
           status: 200,
           //TODO (Asha): Display the location (and other user information) currently used the user in case they want to change it. This will be helpful if the most relevent geocoding response is not the one the user wants.
@@ -322,12 +323,12 @@ app.get(
 );
 
 function encodeAddress(address) {
-  let formattedAddress = encodeURIComponent(address);
-  formattedAddress = formattedAddress.replace("!", "%21");
-  formattedAddress = formattedAddress.replace("*", "%2A");
-  formattedAddress = formattedAddress.replace("'", "%27");
-  formattedAddress = formattedAddress.replace("(", "%28");
-  formattedAddress = formattedAddress.replace(")", "%29");
+  let formattedAddress = encodeURIComponent(address)
+    .replace("!", "%21")
+    .replace("*", "%2A")
+    .replace("'", "%27")
+    .replace("(", "%28")
+    .replace(")", "%29");
   return formattedAddress;
 }
 

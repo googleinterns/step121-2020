@@ -27,15 +27,16 @@ window.onload = function () {
         return;
       }
     } else {
-      const coords = await (
-        await fetch(`/api/${address}/geocode`)
-      ).json();
+      const encodedAddress = encodeAddress(address);
+      const coords = await (await fetch(`/api/${encodedAddress}/geocode`)).json();
 
       if (coords.status === 200) {
         lat = coords.data.lat;
         long = coords.data.lng;
       } else {
-        alert("We could not find the latitude and longitude of that address. Please check your address for misspellings.");
+        alert(
+          "We could not find the latitude and longitude of that address. Please check your address for misspellings."
+        );
         return;
       }
     }
@@ -78,6 +79,16 @@ window.onload = function () {
     window.location.href = `${window.location.origin}/${eventId}/participants`;
   });
 };
+
+function encodeAddress(address) {
+  let formattedAddress = encodeURIComponent(address)
+    .replace("!", "%21")
+    .replace("*", "%2A")
+    .replace("'", "%27")
+    .replace("(", "%28")
+    .replace(")", "%29");
+  return formattedAddress;
+}
 
 function getPosition(options) {
   return new Promise((resolve, reject) =>
@@ -127,7 +138,7 @@ function showRestaurants(allRestaurants) {
     restaurantContainer.appendChild(instructions);
     return;
   }
-  
+
   restaurantContainer.innerHTML = "";
 
   //This will be used to create a new div for every restaurant returned by the Places Library:
@@ -170,10 +181,10 @@ function showRestaurants(allRestaurants) {
     let openingHours = document.createElement("p");
     openingHours.classList.add("restaurant-basic-info");
     let restaurantHours = restaurant.hasOwnProperty("opening_hours")
-      ? restaurant.opening_hours
+      ? Object.values(restaurant.opening_hours)
       : "Unknown";
     openingHours.appendChild(
-      document.createTextNode("Open Now: " + Object.values(restaurantHours))
+      document.createTextNode("Open Now: " + restaurantHours)
     );
     rightDiv.appendChild(openingHours);
 
