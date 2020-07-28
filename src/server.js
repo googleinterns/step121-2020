@@ -50,7 +50,7 @@ app.use(
   cookieSession({
     name: "session",
     keys: ["secret1"],
-    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+    maxAge: 1000, // 1 year
   })
 );
 
@@ -258,12 +258,10 @@ app.get(
     const userData = Object.values(users);
 
     if (userData.length > 0) {
-      // Currently accessing the latitude and longitude of the first user (MVP).
-      // TODO (Chisom): Test average geolocation with multiple user locations.
       const averageLocation = averageGeolocation(userData);
       const lat = averageLocation.latitude.toString();
       const long = averageLocation.longitude.toString();
-      const radiusMeters = "50000";
+      const rankby = "distance";
       const type = "restaurant";
       const minprice = "0";
       const maxprice = "4";
@@ -272,7 +270,7 @@ app.get(
       try {
         const placesApiResponse = await (
           await fetch(
-            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
+            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&rankby=${rankby}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
           )
         ).json();
 

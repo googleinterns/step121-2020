@@ -142,20 +142,29 @@ function showRestaurants() {
 // Initializes a Map.
 async function initMap() {
   const eventId = getEventId();
-  const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
+  const participantsResponse = await (
+    await fetch(`/api/${eventId}/participants`)
+  ).json();
+  const restaurantsResponse = await (
+    await fetch(`/api/${eventId}/restaurants`)
+  ).json();
 
   // Checks if API response is successful and data is not an empty object.
-  // Data could be empty in the case where there are no user locations in the database.
-  if (response.status === 200 && Object.keys(response.data).length !== 0) {
+  // Data could be empty in the case where there are no active participants in the database.
+  if (
+    restaurantsResponse.status === 200 &&
+    Object.keys(restaurantsResponse.data).length !== 0
+  ) {
     const map = new google.maps.Map(document.getElementById("map"), {
-      // Centers Map around average geolocation.
+      // Centers Map around average geolocation when there is at least one participant.
       center: {
-        lat: response.location.latitude,
-        lng: response.location.longitude,
+        lat: restaurantsResponse.location.latitude,
+        lng: restaurantsResponse.location.longitude,
       },
-      zoom: 10,
+      zoom: 13,
     });
-    const restaurants = response.data.results;
+    // Add restaurant markers.
+    const restaurants = restaurantsResponse.data.results;
     restaurants.forEach((restaurant) => {
       new google.maps.Marker({
         position: {
@@ -165,6 +174,30 @@ async function initMap() {
         map: map,
         title: restaurant.name,
       });
+    });
+    // Add participant markers.
+    const participants = participantsResponse.data;
+    const personIcon = "../images/personIcon.png";
+    participants.forEach((participant) => {
+      new google.maps.Marker({
+        position: {
+          lat: participant.lat,
+          lng: participant.long,
+        },
+        map: map,
+        title: participant.name,
+        icon: personIcon,
+        animation: google.maps.Animation.DROP,
+      });
+    });
+  } else {
+    //By default(i.e no active participant) the map is centred around Los Angeles.
+    const map = new google.maps.Map(document.getElementById("map"), {
+      center: {
+        lat: 34.052235,
+        lng: -118.243683,
+      },
+      zoom: 13,
     });
   }
 }
