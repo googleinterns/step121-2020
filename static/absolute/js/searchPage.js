@@ -27,7 +27,9 @@ window.onload = function () {
         return;
       }
     } else {
-      const coords = await (await fetch(`/api/geocode?address=${address}`)).json();
+      const coords = await (
+        await fetch(`/api/geocode?address=${address}`)
+      ).json();
 
       if (coords.status === 200) {
         lat = coords.data.lat;

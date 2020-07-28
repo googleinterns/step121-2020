@@ -12,7 +12,6 @@ const app = express();
 
 const KIND_EVENT = "Event";
 const URL_PARAM_EVENT_ID = `eventID`;
-const URL_PARAM_ADDRESS = `address`;
 
 // TODO(ved): There's definitely a cleaner way to do this.
 const PREFIX_API = "/api";
@@ -178,8 +177,8 @@ app.post(
       // so we remove it with Object.fromEntries
       .save({ key, data: fromEntries(Object.entries(event)) })
       .then(() => {
-        io.in(request.params[URL_PARAM_EVENT_ID]).emit("refresh");
         response.json({ status: 200 });
+        io.in(request.params[URL_PARAM_EVENT_ID]).emit("refresh");
       })
       .catch((err) => {
         console.error(err);
@@ -283,44 +282,40 @@ app.get(
   }
 );
 
-app.get(
-  `${PREFIX_API}/geocode`,
-  async (request, response) => {
-    const address = encodeAddress(request.query.address);
+app.get(`${PREFIX_API}/geocode`, async (request, response) => {
+  const address = encodeAddress(request.query.address);
 
-    const geocodeRequest =
-      "https://maps.googleapis.com/maps/api/geocode/json?address=" +
-      address +
-      "&key=" +
-      env.API_KEY_GEOCODE;
+  const geocodeRequest =
+    "https://maps.googleapis.com/maps/api/geocode/json?address=" +
+    address +
+    "&key=" +
+    env.API_KEY_GEOCODE;
 
-    try {
-      const geocodeResponse = await (await fetch(geocodeRequest)).json();
-      const geocodeResponseStatus = geocodeResponse.status;
+  try {
+    const geocodeResponse = await (await fetch(geocodeRequest)).json();
+    const geocodeResponseStatus = geocodeResponse.status;
 
-      if (geocodeResponseStatus !== "OK") {
-        console.error(
-          "Geocoding error occured. Api response status: " +
-            geocodeResponseStatus
-        );
-        response
-          .status(500)
-          .json({ status: 500, error: { type: geocodeResponseStatus } });
-      } else {
-        response.json({
-          status: 200,
-          //TODO (Asha): Display the location (and other user information) currently used the user in case they want to change it. This will be helpful if the most relevent geocoding response is not the one the user wants.
-          data: geocodeResponse.results[0].geometry.location,
-        });
-      }
-    } catch (err) {
-      console.error(err);
+    if (geocodeResponseStatus !== "OK") {
+      console.error(
+        "Geocoding error occured. Api response status: " + geocodeResponseStatus
+      );
       response
         .status(500)
-        .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
+        .json({ status: 500, error: { type: geocodeResponseStatus } });
+    } else {
+      response.json({
+        status: 200,
+        //TODO (Asha): Display the location (and other user information) currently used the user in case they want to change it. This will be helpful if the most relevent geocoding response is not the one the user wants.
+        data: geocodeResponse.results[0].geometry.location,
+      });
     }
+  } catch (err) {
+    console.error(err);
+    response
+      .status(500)
+      .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
   }
-);
+});
 
 function encodeAddress(address) {
   const formattedAddress = encodeURIComponent(address)
