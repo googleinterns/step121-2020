@@ -283,9 +283,9 @@ app.get(
 );
 
 app.get(
-  `${PREFIX_API}/:${URL_PARAM_ADDRESS}/geocode`,
+  `${PREFIX_API}/geocode`,
   async (request, response) => {
-    const address = encodeAddress(request.params[URL_PARAM_ADDRESS]);
+    const address = encodeAddress(request.query.address);
 
     const geocodeRequest =
       "https://maps.googleapis.com/maps/api/geocode/json?address=" +

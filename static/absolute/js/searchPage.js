@@ -27,8 +27,7 @@ window.onload = function () {
         return;
       }
     } else {
-      const encodedAddress = encodeAddress(address);
-      const coords = await (await fetch(`/api/${encodedAddress}/geocode`)).json();
+      const coords = await (await fetch(`/api/geocode?address=${address}`)).json();
 
       if (coords.status === 200) {
         lat = coords.data.lat;
@@ -79,16 +78,6 @@ window.onload = function () {
     window.location.href = `${window.location.origin}/${eventId}/participants`;
   });
 };
-
-function encodeAddress(address) {
-  const formattedAddress = encodeURIComponent(address)
-    .replace("!", "%21")
-    .replace("*", "%2A")
-    .replace("'", "%27")
-    .replace("(", "%28")
-    .replace(")", "%29");
-  return formattedAddress;
-}
 
 function getPosition(options) {
   return new Promise((resolve, reject) =>
