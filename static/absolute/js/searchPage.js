@@ -2,7 +2,7 @@ const socket = io();
 socket.emit("join", getEventId());
 
 window.onload = function () {
-  restaurantSearch();
+  searchRestaurants();
 
   document.getElementById("search-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("name-input");
@@ -90,10 +90,10 @@ socket.on("refresh", () => {
   console.log(
     "Refresh message received from server via Socket.io. Refreshing restaurant results."
   );
-  restaurantSearch();
+  searchRestaurants();
 });
 
-async function restaurantSearch() {
+async function searchRestaurants() {
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
   if (response.status !== 200) {
