@@ -169,12 +169,13 @@ function showRestaurants(allRestaurants) {
 
     let openingHours = document.createElement("p");
     openingHours.classList.add("restaurant-basic-info");
-    let restaurantHours = restaurant.hasOwnProperty("opening_hours")
-      ? Object.values(restaurant.opening_hours)
-      : "Unknown";
-    openingHours.appendChild(
-      document.createTextNode("Open Now: " + restaurantHours)
-    );
+    let openNow = "";
+    if (restaurant.hasOwnProperty("opening_hours")) {
+      openNow = Object.values(restaurant.opening_hours)
+        ? "Open Now"
+        : "Closed now";
+    }
+    openingHours.appendChild(document.createTextNode(openNow));
     rightDiv.appendChild(openingHours);
 
     restaurantDiv.appendChild(rightDiv);
