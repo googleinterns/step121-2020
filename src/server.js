@@ -178,6 +178,7 @@ app.post(
       // so we remove it with Object.fromEntries
       .save({ key, data: fromEntries(Object.entries(event)) })
       .then(() => {
+        io.in(request.params[URL_PARAM_EVENT_ID]).emit("refresh");
         response.json({ status: 200 });
       })
       .catch((err) => {
@@ -344,11 +345,5 @@ io.on("connection", (socket) => {
   //Add client socket to a room based on the session ID. This will allow only clients with the same ID to communicate.
   socket.on("join", (eventId) => {
     socket.join(eventId);
-  });
-
-  //This message is received when new user information is successfully added.
-  //In response, the server passes a refresh message to let clients in the same room refresh.
-  socket.on("data submitted", (eventId) => {
-    io.in(eventId).emit("refresh");
   });
 });
