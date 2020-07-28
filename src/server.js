@@ -306,7 +306,6 @@ app.get(
           .status(500)
           .json({ status: 500, error: { type: geocodeResponseStatus } });
       } else {
-        console.log(geocodeResponse.results);
         response.json({
           status: 200,
           //TODO (Asha): Display the location (and other user information) currently used the user in case they want to change it. This will be helpful if the most relevent geocoding response is not the one the user wants.
