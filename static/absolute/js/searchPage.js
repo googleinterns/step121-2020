@@ -62,6 +62,17 @@ window.onload = function () {
     const id = getEventId();
     window.location.href = `${window.location.origin}/${id}/participants`;
   });
+  document.getElementById("share-invite-btn").addEventListener("click", () => {
+    const url = `${window.location.origin}/${getEventId()}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        alert("Invite url copied to clipboard.");
+      })
+      .catch((err) => {
+        alert("Failed to copy url to clipboard.");
+      });
+  });
 };
 
 function getPosition(options) {
