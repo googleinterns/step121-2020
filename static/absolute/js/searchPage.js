@@ -81,7 +81,7 @@ window.onload = function () {
 };
 
 function encodeAddress(address) {
-  let formattedAddress = encodeURIComponent(address)
+  const formattedAddress = encodeURIComponent(address)
     .replace("!", "%21")
     .replace("*", "%2A")
     .replace("'", "%27")
