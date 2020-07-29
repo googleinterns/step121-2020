@@ -149,8 +149,8 @@ async function initMap() {
     await fetch(`/api/${eventId}/restaurants`)
   ).json();
 
-  // Checks if API response is successful and data is not an empty object.
-  // Data could be empty in the case where there are no active participants in the database.
+  // Checks if API response is successful and contains restaurant data.
+  // restuarant data could be empty in the case where there are no active participants in the database.
   if (
     restaurantsResponse.status === 200 &&
     Object.keys(restaurantsResponse.data).length !== 0
@@ -175,6 +175,7 @@ async function initMap() {
         title: restaurant.name,
       });
     });
+
     // Add participant markers.
     const participants = participantsResponse.data;
     const personIcon = "../images/personIcon.png";
@@ -191,7 +192,7 @@ async function initMap() {
       });
     });
   } else {
-    //By default(i.e no active participant) the map is centred around Los Angeles.
+    //By default the map is centred around Los Angeles.
     const map = new google.maps.Map(document.getElementById("map"), {
       center: {
         lat: 34.052235,

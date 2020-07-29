@@ -50,7 +50,7 @@ app.use(
   cookieSession({
     name: "session",
     keys: ["secret1"],
-    maxAge: 1000, // 1 year
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   })
 );
 
@@ -220,7 +220,9 @@ function averageGeolocation(coords) {
   let y = 0.0;
   let z = 0.0;
 
-  if (coords.length > 1) {
+  if (coords.length < 1) {
+    return {};
+  } else {
     for (let coord of coords) {
       let latitude = (coord.lat * Math.PI) / 180;
       let longitude = (coord.long * Math.PI) / 180;
@@ -244,8 +246,6 @@ function averageGeolocation(coords) {
       latitude: (centralLatitude * 180) / Math.PI,
       longitude: (centralLongitude * 180) / Math.PI,
     };
-  } else {
-    return {};
   }
 }
 
