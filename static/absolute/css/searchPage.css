@@ -5,11 +5,19 @@ body {
 
 /* Banner at top of page contains logo */
 #header-banner {
+  display: flex;
+  flex-direction: row;
   border: 1px solid #ccc;
   background-color: whitesmoke;
   width: 100%;
   position: fixed;
   z-index: 10;
+}
+
+.header-button-container {
+  display: flex;
+  flex: 1; /* occupy remaining space */
+  justify-content: flex-end;
 }
 
 /* Logo at the top left corner */
@@ -144,8 +152,7 @@ body {
   color: rgb(145, 145, 145);
 }
 
-/* Button to share group search invite */
-.share-invite {
+.banner-btn {
   padding: 12px 25px;
   text-decoration: none;
   display: inline-block;
@@ -158,24 +165,11 @@ body {
   border-radius: 0.5rem;
 }
 
-.share-invite:hover {
+.banner-btn:hover {
   background-color: rgb(245, 156, 150);
 }
 
-/* Button for linking to participants page*/
-.participants {
-  padding: 12px 25px;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  background-color: white;
-  color: #444;
-  border: 2px solid #fe5f55;
-  margin-top: 30px;
-  margin-bottom: 20px;
-  border-radius: 0.5rem;
-}
-
-.participants:hover {
-  background-color: rgb(245, 156, 150);
+#participants-btn {
+  margin-left: 15px;
+  margin-right: 25px;
 }
