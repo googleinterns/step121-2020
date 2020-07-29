@@ -3,10 +3,21 @@ body {
   margin: 0px;
 }
 
+/* margin left small */
+.m-left-s {
+  margin-left: 15px;
+}
+
+.m-left-m {
+  margin-left: 25px;
+}
+
 /* Banner at top of page contains logo */
 #header-banner {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
   border: 1px solid #ccc;
   background-color: whitesmoke;
   width: 100%;
@@ -14,10 +25,15 @@ body {
   z-index: 10;
 }
 
+.search-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .header-button-container {
   display: flex;
-  flex: 1; /* occupy remaining space */
-  justify-content: flex-end;
 }
 
 /* Logo at the top left corner */
@@ -27,22 +43,13 @@ body {
   height: 90px;
 }
 
-/* Input form i.e for name, location, etc. */
-#input-form {
-  margin-left: 25px;
-  margin-right: auto;
-  width: 60%;
-  text-align: left;
-  background-color: #e2f1ea;
-  border-radius: 0.5rem;
-  box-shadow: 5px 8px 10px #d1d1d1;
-  padding: 20px;
+.search-padding {
+  padding: 12px 25px;
 }
 
 /* Input box for form */
 .input {
   width: 300px;
-  padding: 15px 32px;
   margin: 8px 0;
   box-sizing: border-box;
   border: 3px solid #ccc;
@@ -56,8 +63,7 @@ body {
 }
 
 /* input box label */
-.textb label {
-  display: inline-block;
+.search-label {
   text-align: left;
   color: #444;
   font-weight: 600;
@@ -70,7 +76,6 @@ body {
   border: 1px solid rgb(145, 145, 145);
   border-radius: 0.2rem;
   color: white;
-  padding: 12px 25px;
   text-align: center;
   text-decoration: none;
   font-size: 16px;
@@ -139,6 +144,7 @@ body {
   margin-left: 25px;
 }
 
+<<<<<<< HEAD
 /* Style for top buttons: Share invite and View Particpants */
 .top-buttons {
   margin-left: 20px;
@@ -146,6 +152,8 @@ body {
   margin-top: 6%;
 }
 
+=======
+>>>>>>> 6785556... Move search bar
 /* Style for the given session name */
 #session-name {
   margin-top: 5px;
@@ -170,6 +178,5 @@ body {
 }
 
 #participants-btn {
-  margin-left: 15px;
   margin-right: 25px;
 }
