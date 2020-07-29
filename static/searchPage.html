@@ -11,16 +11,44 @@
   <body>
     <div id="header-banner">
       <img id="logo" src="/images/logo.png" alt="Ogene" />
+      <div class="search-bar">
+        <div>
+          <label class="search-label" for="fname">Name: &emsp;</label>
+          <input
+            id="name-input"
+            class="input search-padding"
+            type="text"
+            name="name"
+            value=""
+            placeholder="Name"
+          />
+        </div>
+        <div class="m-left-m">
+          <label class="search-label" for="flocation">Address: &emsp;</label>
+          <input
+            id="address-input"
+            class="input search-padding"
+            type="text"
+            name="location"
+            value=""
+            placeholder="Enter a place, town, or postal code:"
+          />
+        </div>
+        <button id="search-btn" class="m-left-s search-padding" type="button">
+          Search
+        </button>
+      </div>
       <div class="header-button-container">
         <button class="banner-btn" id="share-invite-btn">
           Copy Invite URL
         </button>
-        <button class="banner-btn" id="participants-btn">
+        <button class="banner-btn m-left-s" id="participants-btn">
           View Participants
         </button>
       </div>
     </div>
 
+<<<<<<< HEAD
     <div id="input-form">
       <h2 id="session-name">Session name</h2>
       <div class="textb">
@@ -65,6 +93,11 @@
         <h1 id="results-title">Results</h1>
         <div id="restaurant-container"></div>
       </div>
+=======
+    <div id="search-results">
+      <h1 id="results-title">Results</h1>
+      <div id="restaurant-container"></div>
+>>>>>>> 6785556... Move search bar
     </div>
 
     <div id="map"></div>
