@@ -140,9 +140,10 @@ async function getEvent(request, response, next) {
     });
 }
 
-app.post(`${PREFIX_API}/create`, async (_, response) => {
+app.post(`${PREFIX_API}/create`, async (request, response) => {
+  const { name } = request.body;
   const key = datastore.key([KIND_EVENT]);
-  const result = await datastore.save({ key, data: { users: {} } });
+  const result = await datastore.save({ key, data: { users: {}, name } });
   response.send({
     // Datastore automatically generates a unique id
     // for the key associated with our entity. This is the only
@@ -154,13 +155,6 @@ app.post(`${PREFIX_API}/create`, async (_, response) => {
   });
 });
 
-/**
- * Sample post body:
- * {
- *   name: "bob",
- *   location: "[123, 321]"
- * }
- */
 app.post(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}`,
   getEvent,
@@ -190,10 +184,10 @@ app.post(
 );
 
 app.get(
-  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/details`,
+  `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/name`,
   getEvent,
   async (request, response) => {
-    response.json({ status: 200, data: request.event });
+    response.json({ status: 200, data: request.event.name });
   }
 );
 

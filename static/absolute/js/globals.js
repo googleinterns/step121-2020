@@ -15,3 +15,4 @@ function getEventId() {
   }
 }
 window.getEventId = getEventId;
+window.HEADER_CONTENT_TYPE_JSON = { "Content-Type": "application/json" };
