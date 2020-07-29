@@ -212,19 +212,18 @@ app.get(
 );
 
 function averageGeolocation(coords) {
+  if (coords.length === 0) {
+    return {};
+  }
   if (coords.length === 1) {
     return {
       latitude: coords[0].lat,
       longitude: coords[0].long,
     };
-  }
-  let x = 0.0;
-  let y = 0.0;
-  let z = 0.0;
-
-  if (coords.length < 1) {
-    return {};
   } else {
+    let x = 0.0;
+    let y = 0.0;
+    let z = 0.0;
     for (let coord of coords) {
       let latitude = (coord.lat * Math.PI) / 180;
       let longitude = (coord.long * Math.PI) / 180;
