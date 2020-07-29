@@ -2,6 +2,7 @@ const socket = io();
 socket.emit("join", getEventId());
 
 window.onload = function () {
+  initInviteButton()
   refreshUI();
 
   document.getElementById("search-btn").addEventListener("click", async () => {
@@ -46,9 +47,7 @@ window.onload = function () {
     try {
       const resp = await fetch(`api/${eventId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: window.HEADER_CONTENT_TYPE_JSON,
         body: JSON.stringify({
           name,
           location: [lat, long],
@@ -87,6 +86,13 @@ window.onload = function () {
       });
   });
 };
+
+async function initInviteButton() {
+  const response = await (await fetch(`api/${getEventId()}/name`)).json();
+  const name = response.data;
+  const inviteButton = document.getElementById("share-invite-btn");
+  inviteButton.textContent = `Copy Invite URL for "${name}"`;
+}
 
 function getPosition(options) {
   return new Promise((resolve, reject) =>
