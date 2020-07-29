@@ -260,9 +260,9 @@ app.get(
     const userData = Object.values(users);
 
     if (userData.length > 0) {
-      const averageLocation = averageGeolocation(userData);
-      const lat = averageLocation.latitude.toString();
-      const long = averageLocation.longitude.toString();
+      const { latitude, longitude } = averageGeolocation(userData);
+      const lat = latitude.toString();
+      const long = longitude.toString();
       const rankby = "distance";
       const type = "restaurant";
       const minprice = "0";
@@ -287,7 +287,7 @@ app.get(
           response.json({
             status: 200,
             data: placesApiResponse,
-            location: averageLocation,
+            location: { latitude, longitude },
           });
         }
         // Catch Fetch error
