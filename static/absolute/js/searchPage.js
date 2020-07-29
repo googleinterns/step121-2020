@@ -149,10 +149,11 @@ async function initMap() {
     await fetch(`/api/${eventId}/restaurants`)
   ).json();
 
-  // Checks if API response is successful and contains restaurant data.
-  // restuarant data could be empty in the case where there are no active participants in the database.
+  // Checks if API responses are successful and restaurant data is not empty.
+  // Restuarant data could be empty in the case where there are no active participants in the database.
   if (
     restaurantsResponse.status === 200 &&
+    participantsResponse.status === 200 &&
     Object.keys(restaurantsResponse.data).length !== 0
   ) {
     const map = new google.maps.Map(document.getElementById("map"), {
