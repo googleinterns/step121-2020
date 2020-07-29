@@ -19,6 +19,7 @@ const PREFIX_API = "/api";
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
+const ERROR_GEOCODING_FAILED = "GEOCODING_FAILED";
 const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
 
 app.use(express.static("static/absolute"));
@@ -177,6 +178,7 @@ app.post(
       .save({ key, data: fromEntries(Object.entries(event)) })
       .then(() => {
         response.json({ status: 200 });
+        io.in(request.params[URL_PARAM_EVENT_ID]).emit("refresh");
       })
       .catch((err) => {
         console.error(err);
@@ -320,7 +322,63 @@ app.get(
   }
 );
 
+app.get(`${PREFIX_API}/geocode`, async (request, response) => {
+  const address = encodeAddress(request.query.address);
+
+  const geocodeRequest =
+    "https://maps.googleapis.com/maps/api/geocode/json?address=" +
+    address +
+    "&key=" +
+    env.API_KEY_GEOCODE;
+
+  try {
+    const geocodeResponse = await (await fetch(geocodeRequest)).json();
+    const geocodeResponseStatus = geocodeResponse.status;
+
+    if (geocodeResponseStatus !== "OK") {
+      console.error(
+        "Geocoding error occured. Api response status: " + geocodeResponseStatus
+      );
+      response
+        .status(500)
+        .json({ status: 500, error: { type: geocodeResponseStatus } });
+    } else {
+      response.json({
+        status: 200,
+        //TODO (Asha): Display the location (and other user information) currently used the user in case they want to change it. This will be helpful if the most relevent geocoding response is not the one the user wants.
+        data: geocodeResponse.results[0].geometry.location,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    response
+      .status(500)
+      .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
+  }
+});
+
+function encodeAddress(address) {
+  const formattedAddress = encodeURIComponent(address)
+    .replace("!", "%21")
+    .replace("*", "%2A")
+    .replace("'", "%27")
+    .replace("(", "%28")
+    .replace(")", "%29");
+  return formattedAddress;
+}
+
 const port = 8080;
-app.listen(port, () =>
+const server = app.listen(port, () =>
   console.log(`Server listening on http://localhost:${port}`)
 );
+
+//Attach Socket.io to the existing express server.
+const io = require("socket.io")(server);
+
+//When socket.io is connected to the server, we can listen for events.
+io.on("connection", (socket) => {
+  //Add client socket to a room based on the session ID. This will allow only clients with the same ID to communicate.
+  socket.on("join", (eventId) => {
+    socket.join(eventId);
+  });
+});

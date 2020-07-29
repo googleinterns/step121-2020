@@ -1,3 +1,22 @@
+const socket = io();
+socket.emit("join", getEventId());
+
+socket.on("refresh", () => {
+  console.log(
+    "Refresh message received from server. Updating participants page."
+  );
+  showParticipants();
+});
+
+window.onload = function () {
+  document
+    .getElementById("participant-back-btn")
+    .addEventListener("click", () => {
+      const eventId = getEventId();
+      window.location.href = `${window.location.origin}/${eventId}`;
+    });
+};
+
 async function showParticipants() {
   const eventId = getEventId();
   const response = await (await fetch(`/api/${eventId}/participants`)).json();
@@ -5,6 +24,8 @@ async function showParticipants() {
     const participantContainer = document.getElementById(
       "participant-container"
     );
+    participantContainer.innerHTML = "";
+
     const participants = response.data;
     participants
       .map((p) => ({ ...p, location: `${p.lat},${p.long}` }))

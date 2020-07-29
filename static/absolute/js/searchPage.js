@@ -1,6 +1,9 @@
+const socket = io();
+socket.emit("join", getEventId());
+
 window.onload = function () {
-  initMap();
-  showRestaurants();
+  searchRestaurants();
+
   document.getElementById("search-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("name-input");
     const name = nameInput.value;
@@ -23,14 +26,25 @@ window.onload = function () {
         return;
       }
     } else {
-      // TODO(ved): Use API to convert address --> long/lat
-      alert("This is not yet supported");
-      return;
+      const coords = await (
+        await fetch(`/api/geocode?address=${address}`)
+      ).json();
+
+      if (coords.status === 200) {
+        lat = coords.data.lat;
+        long = coords.data.lng;
+      } else {
+        alert(
+          "We could not find the latitude and longitude of that address. Please check your address for misspellings."
+        );
+        return;
+      }
     }
 
-    let data;
+    let postResponse;
+    const eventId = getEventId();
     try {
-      const resp = await fetch(`api/${getEventId()}`, {
+      const resp = await fetch(`api/${eventId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,16 +54,16 @@ window.onload = function () {
           location: [lat, long],
         }),
       });
-      data = await resp.json();
+      postResponse = await resp.json();
     } catch (err) {
       console.log(err);
       alert("error posting to api");
       return;
     }
 
-    if (data.status !== 200) {
+    if (postResponse.status !== 200) {
       // TODO(ved): How should we display errors?
-      console.log(data.error);
+      console.log(postResponse.error);
       alert("error posting to api");
       return;
     }
@@ -57,9 +71,21 @@ window.onload = function () {
     nameInput.value = "";
     addressInput.value = "";
   });
+
   document.getElementById("participants-btn").addEventListener("click", () => {
-    const id = getEventId();
-    window.location.href = `${window.location.origin}/${id}/participants`;
+    const eventId = getEventId();
+    window.location.href = `${window.location.origin}/${eventId}/participants`;
+  });
+  document.getElementById("share-invite-btn").addEventListener("click", () => {
+    const url = `${window.location.origin}/${getEventId()}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        alert("Invite url copied to clipboard.");
+      })
+      .catch((err) => {
+        alert("Failed to copy url to clipboard.");
+      });
   });
 };
 
@@ -69,25 +95,25 @@ function getPosition(options) {
   );
 }
 
-/** Some Hard-coded data to display as restaurants temporarily. */
-const restaurant1 = {
-  name: "Nice Cafe",
-  address: "123 N. Street st.",
-  latLong: { lat: 37.0, lng: -122.0 },
-  rating: 5,
-  priceLevel: 2,
-  openingHours: "8:00am - 10:00pm",
-};
-const restaurant2 = {
-  name: "Bad Cafe",
-  address: "987 S. Street st.",
-  latLong: { lat: -37.0, lng: 122.0 },
-  rating: 2,
-  priceLevel: 4,
-  openingHours: "12:00am - 9:00am",
-};
+//This message is recieved from the server indicating that information has been submitted, and the client needs to refresh.
+socket.on("refresh", () => {
+  console.log(
+    "Refresh message received from server via Socket.io. Refreshing restaurant results."
+  );
+  searchRestaurants();
+});
 
-const allRestaurants = [restaurant1, restaurant2];
+async function searchRestaurants() {
+  const eventId = getEventId();
+  const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
+  if (response.status !== 200) {
+    console.log("Error fetching restaurants: " + response.error);
+    return;
+  }
+
+  initMap();
+  showRestaurants(response.data);
+}
 
 /**
  * Creates HTML elements for the restaurant details and adds it
@@ -96,11 +122,26 @@ const allRestaurants = [restaurant1, restaurant2];
  * For now, this function deals with hard-coded data, but this
  * can be used as a template for when we get data the Places Library results.
  */
-function showRestaurants() {
+function showRestaurants(allRestaurants) {
   const restaurantContainer = document.getElementById("restaurant-container");
 
+  if (!allRestaurants.hasOwnProperty("results")) {
+    let instructions = document.createElement("p");
+    instructions.classList.add("search-instructions");
+    instructions.appendChild(
+      document.createTextNode(
+        "No one has added their information yet! Fill out the form above to start seeing some results."
+      )
+    );
+
+    restaurantContainer.appendChild(instructions);
+    return;
+  }
+
+  restaurantContainer.innerHTML = "";
+
   //This will be used to create a new div for every restaurant returned by the Places Library:
-  allRestaurants.forEach((restaurant) => {
+  allRestaurants.results.forEach((restaurant) => {
     let restaurantDiv = document.createElement("div");
     restaurantDiv.classList.add("restaurant-card");
 
@@ -109,15 +150,19 @@ function showRestaurants() {
 
     let name = document.createElement("h2");
     name.classList.add("restaurant-name");
-    name.appendChild(document.createTextNode(restaurant.name));
+    let restaurantName = restaurant.hasOwnProperty("name")
+      ? restaurant.name
+      : "";
+    name.appendChild(document.createTextNode(restaurantName));
     leftDiv.appendChild(name);
 
-    let location = document.createElement("p");
-    location.classList.add("restaurant-info");
-    location.appendChild(
-      document.createTextNode("Rating: " + restaurant.rating)
-    );
-    leftDiv.appendChild(location);
+    let rating = document.createElement("p");
+    rating.classList.add("restaurant-info");
+    let restaurantRating = restaurant.hasOwnProperty("rating")
+      ? restaurant.rating
+      : "Unknown";
+    rating.appendChild(document.createTextNode("Rating: " + restaurantRating));
+    leftDiv.appendChild(rating);
 
     restaurantDiv.appendChild(leftDiv);
 
@@ -126,12 +171,21 @@ function showRestaurants() {
 
     let address = document.createElement("p");
     address.classList.add("restaurant-basic-info");
-    address.appendChild(document.createTextNode(restaurant.address));
+    let restaurantVicinity = restaurant.hasOwnProperty("vicinity")
+      ? restaurant.vicinity
+      : "";
+    address.appendChild(document.createTextNode(restaurantVicinity));
     rightDiv.appendChild(address);
 
     let openingHours = document.createElement("p");
     openingHours.classList.add("restaurant-basic-info");
-    openingHours.appendChild(document.createTextNode(restaurant.openingHours));
+    let openNow = "";
+    if (restaurant.hasOwnProperty("opening_hours")) {
+      openNow = Object.values(restaurant.opening_hours)
+        ? "Open Now"
+        : "Closed now";
+    }
+    openingHours.appendChild(document.createTextNode(openNow));
     rightDiv.appendChild(openingHours);
 
     restaurantDiv.appendChild(rightDiv);
