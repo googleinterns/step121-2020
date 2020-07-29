@@ -2,7 +2,7 @@ const socket = io();
 socket.emit("join", getEventId());
 
 window.onload = function () {
-  searchRestaurants();
+  refreshUI();
 
   document.getElementById("search-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("name-input");
@@ -99,10 +99,10 @@ socket.on("refresh", () => {
   console.log(
     "Refresh message received from server via Socket.io. Refreshing restaurant results."
   );
-  searchRestaurants();
+  refreshUI();
 });
 
-async function searchRestaurants() {
+async function refreshUI() {
   const eventId = getEventId();
   const participantsResponse = await (
     await fetch(`/api/${eventId}/participants`)
@@ -198,7 +198,7 @@ function showRestaurants(restaurantsResponse) {
 async function initMap(participantsResponse, restaurantsResponse) {
   const eventId = getEventId();
 
-  // Checks if restaurant API responses iz successful and restaurant data is not empty.
+  // Checks if restaurant API responses is successful and restaurant data is not empty.
   // Restuarant data could be empty in the case where there are no active participants in the database.
   if (
     restaurantsResponse.status === 200 &&
@@ -240,7 +240,7 @@ async function initMap(participantsResponse, restaurantsResponse) {
       });
     });
   } else {
-    //Default Map is centred around Los Angeles.
+    //Default map is centered around Los Angeles.
     const map = new google.maps.Map(document.getElementById("map"), {
       center: {
         lat: 34.052235,
