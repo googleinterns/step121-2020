@@ -2,12 +2,11 @@ const socket = io();
 socket.emit("join", getEventId());
 
 window.onload = function () {
-  searchRestaurants();
+  refreshUI();
 
   document.getElementById("search-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("name-input");
     const name = nameInput.value;
-
     const addressInput = document.getElementById("address-input");
     const address = addressInput.value;
 
@@ -68,7 +67,6 @@ window.onload = function () {
       alert("error posting to api");
       return;
     }
-
     nameInput.value = "";
     addressInput.value = "";
   });
@@ -101,19 +99,20 @@ socket.on("refresh", () => {
   console.log(
     "Refresh message received from server via Socket.io. Refreshing restaurant results."
   );
-  searchRestaurants();
+  refreshUI();
 });
 
-async function searchRestaurants() {
+async function refreshUI() {
   const eventId = getEventId();
-  const response = await (await fetch(`/api/${eventId}/restaurants`)).json();
-  if (response.status !== 200) {
-    console.log("Error fetching restaurants: " + response.error);
-    return;
-  }
+  const participantsResponse = await (
+    await fetch(`/api/${eventId}/participants`)
+  ).json();
+  const restaurantsResponse = await (
+    await fetch(`/api/${eventId}/restaurants`)
+  ).json();
 
-  initMap();
-  showRestaurants(response.data);
+  initMap(participantsResponse, restaurantsResponse);
+  showRestaurants(restaurantsResponse);
 }
 
 /**
@@ -123,8 +122,11 @@ async function searchRestaurants() {
  * For now, this function deals with hard-coded data, but this
  * can be used as a template for when we get data the Places Library results.
  */
-function showRestaurants(allRestaurants) {
+function showRestaurants(restaurantsResponse) {
+  const allRestaurants = restaurantsResponse.data;
   const restaurantContainer = document.getElementById("restaurant-container");
+
+  restaurantContainer.innerHTML = "";
 
   if (!allRestaurants.hasOwnProperty("results")) {
     let instructions = document.createElement("p");
@@ -138,8 +140,6 @@ function showRestaurants(allRestaurants) {
     restaurantContainer.appendChild(instructions);
     return;
   }
-
-  restaurantContainer.innerHTML = "";
 
   //This will be used to create a new div for every restaurant returned by the Places Library:
   allRestaurants.results.forEach((restaurant) => {
@@ -194,22 +194,59 @@ function showRestaurants(allRestaurants) {
   });
 }
 
-// Initializes a map
-function initMap() {
-  const map = new google.maps.Map(document.getElementById("map"), {
-    center: {
-      lat: 46.2276,
-      lng: 2.2137,
-    },
-    zoom: 6,
-  });
+// Initializes a Map.
+async function initMap(participantsResponse, restaurantsResponse) {
+  const eventId = getEventId();
 
-  const Marker = new google.maps.Marker({
-    position: {
-      lat: 48.8584,
-      lng: 2.2945,
-    },
-    map: map,
-    title: "Eiffel tower",
-  });
+  // Checks if restaurant API responses is successful and restaurant data is not empty.
+  // Restuarant data could be empty in the case where there are no active participants in the database.
+  if (
+    restaurantsResponse.status === 200 &&
+    restaurantsResponse.data.hasOwnProperty("results")
+  ) {
+    const map = new google.maps.Map(document.getElementById("map"), {
+      // Centers Map around average geolocation when there is at least one participant.
+      center: {
+        lat: restaurantsResponse.location.latitude,
+        lng: restaurantsResponse.location.longitude,
+      },
+      zoom: 13,
+    });
+    // Add restaurant markers.
+    const restaurants = restaurantsResponse.data.results;
+    restaurants.forEach((restaurant) => {
+      new google.maps.Marker({
+        position: {
+          lat: restaurant.geometry.location.lat,
+          lng: restaurant.geometry.location.lng,
+        },
+        map: map,
+        title: restaurant.name,
+      });
+    });
+    // Add participants markers.
+    const participants = participantsResponse.data;
+    const personIcon = "../images/personIcon.png";
+    participants.forEach((participant) => {
+      new google.maps.Marker({
+        position: {
+          lat: participant.lat,
+          lng: participant.long,
+        },
+        map: map,
+        title: participant.name,
+        icon: personIcon,
+        animation: google.maps.Animation.DROP,
+      });
+    });
+  } else {
+    //Default map is centered around Los Angeles.
+    const map = new google.maps.Map(document.getElementById("map"), {
+      center: {
+        lat: 34.052235,
+        lng: -118.243683,
+      },
+      zoom: 13,
+    });
+  }
 }

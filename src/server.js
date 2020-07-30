@@ -211,6 +211,45 @@ app.get(
   }
 );
 
+function averageGeolocation(coords) {
+  if (coords.length === 0) {
+    return {};
+  }
+  if (coords.length === 1) {
+    return {
+      latitude: coords[0].lat,
+      longitude: coords[0].long,
+    };
+  } else {
+    let x = 0.0;
+    let y = 0.0;
+    let z = 0.0;
+    for (let coord of coords) {
+      let latitude = (coord.lat * Math.PI) / 180;
+      let longitude = (coord.long * Math.PI) / 180;
+
+      x += Math.cos(latitude) * Math.cos(longitude);
+      y += Math.cos(latitude) * Math.sin(longitude);
+      z += Math.sin(latitude);
+    }
+
+    let total = coords.length;
+
+    x = x / total;
+    y = y / total;
+    z = z / total;
+
+    let centralLongitude = Math.atan2(y, x);
+    let centralSquareRoot = Math.sqrt(x * x + y * y);
+    let centralLatitude = Math.atan2(z, centralSquareRoot);
+
+    return {
+      latitude: (centralLatitude * 180) / Math.PI,
+      longitude: (centralLongitude * 180) / Math.PI,
+    };
+  }
+}
+
 app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`,
   getEvent,
@@ -220,11 +259,10 @@ app.get(
     const userData = Object.values(users);
 
     if (userData.length > 0) {
-      // Currently accessing the latitude and longitude of the first user (MVP).
-      // TODO (Chisom): Test average geolocation with multiple user locations.
-      const lat = userData[0].lat.toString();
-      const long = userData[0].long.toString();
-      const radiusMeters = "50000";
+      const { latitude, longitude } = averageGeolocation(userData);
+      const lat = latitude.toString();
+      const long = longitude.toString();
+      const rankby = "distance";
       const type = "restaurant";
       const minprice = "0";
       const maxprice = "4";
@@ -233,7 +271,7 @@ app.get(
       try {
         const placesApiResponse = await (
           await fetch(
-            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=${radiusMeters}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
+            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&rankby=${rankby}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
           )
         ).json();
 
@@ -248,6 +286,7 @@ app.get(
           response.json({
             status: 200,
             data: placesApiResponse,
+            location: { latitude, longitude },
           });
         }
         // Catch Fetch error

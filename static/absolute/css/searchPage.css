@@ -8,6 +8,8 @@ body {
   border: 1px solid #ccc;
   background-color: whitesmoke;
   width: 100%;
+  position: fixed;
+  z-index: 10;
 }
 
 /* Logo at the top left corner */
@@ -19,14 +21,14 @@ body {
 
 /* Input form i.e for name, location, etc. */
 #input-form {
-  margin-left: auto;
+  margin-left: 25px;
   margin-right: auto;
-  width: 50%;
+  width: 60%;
   text-align: left;
   background-color: #e2f1ea;
   border-radius: 0.5rem;
   box-shadow: 5px 8px 10px #d1d1d1;
-  padding: 25px;
+  padding: 20px;
 }
 
 /* Input box for form */
@@ -70,11 +72,11 @@ body {
   background-color: rgb(226, 55, 43);
 }
 
-/* Sectioning search results to the left */
-#search-results {
+/* Style for left column (results and input-form section) */
+#left-column {
   float: left;
   margin: 25px;
-  width: 63%;
+  width: 65%;
 }
 
 #results-title {
@@ -120,20 +122,25 @@ body {
 #map {
   float: right;
   width: 28%;
-  height: 500px;
+  height: 100% !important; /* Marked as important to avoid conflicts with pre-existing Maps Javascript style */
+  position: fixed !important;
+  overflow-y: hidden; /* Disable vertical scroll */
   border: thin solid grey;
-  position: relative;
-  margin-top: 7%;
-  margin-right: 25px;
+  right: 0;
+  display: inline-block;
+  margin-left: 25px;
 }
 
 /* Style for top buttons: Share invite and View Particpants */
 .top-buttons {
-  margin-left: 2%;
+  margin-left: 20px;
+  display: inline-block;
+  margin-top: 6%;
 }
 
 /* Style for the given session name */
 #session-name {
+  margin-top: 5px;
   color: rgb(145, 145, 145);
 }
 
