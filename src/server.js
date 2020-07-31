@@ -261,7 +261,6 @@ app.get(
       const minprice = "0";
       const maxprice = "4";
 
-      // Try for invalid Json Response.
       try {
         const placesApiResponse = await (
           await fetch(
@@ -277,10 +276,14 @@ app.get(
             error: { type: ERROR_BAD_PLACES_API_INTERACTION },
           });
         } else {
+          // Normalize undefined or null to an empty array
           response.json({
             status: 200,
-            data: placesApiResponse,
-            location: { latitude, longitude },
+            data: {
+              places: placesApiResponse.results || [],
+              attributions: placesApiResponse.html_attributions || [],
+              center: { latitude, longitude },
+            },
           });
         }
         // Catch Fetch error
@@ -292,11 +295,13 @@ app.get(
         });
       }
     } else {
-      // Respond with empty object if there is no user location.
-      const placesApiResponse = {};
       response.json({
         status: 200,
-        data: placesApiResponse,
+        data: {
+          places: [],
+          attributions: [],
+          center: null,
+        },
       });
     }
   }

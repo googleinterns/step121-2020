@@ -110,31 +110,40 @@ socket.on("refresh", () => {
 
 async function refreshUI() {
   const eventId = getEventId();
-  const participantsResponse = await (
-    await fetch(`/api/${eventId}/participants`)
-  ).json();
-  const restaurantsResponse = await (
-    await fetch(`/api/${eventId}/restaurants`)
-  ).json();
 
-  initMap(participantsResponse, restaurantsResponse);
-  showRestaurants(restaurantsResponse);
+  // Fetch in parallel
+  const [participantsResponse, restaurantsResponse] = await Promise.all([
+    fetch(`/api/${eventId}/participants`).then((response) => response.json()),
+    fetch(`/api/${eventId}/restaurants`).then((response) => response.json()),
+  ]);
+
+  if (
+    participantsResponse.status !== 200 ||
+    restaurantsResponse.status !== 200
+  ) {
+    console.error(`Failed to fetch from endpoints`);
+    return;
+  }
+
+  const { data: participants } = participantsResponse;
+  const {
+    data: { places, center },
+  } = restaurantsResponse;
+
+  const domNodes = showRestaurants(places);
+  initMap(participants, center, places, domNodes);
 }
 
 /**
  * Creates HTML elements for the restaurant details and adds it
  * to a container in searchResults.html.
- *
- * For now, this function deals with hard-coded data, but this
- * can be used as a template for when we get data the Places Library results.
  */
-function showRestaurants(restaurantsResponse) {
-  const allRestaurants = restaurantsResponse.data;
+function showRestaurants(restaurants) {
   const restaurantContainer = document.getElementById("restaurant-container");
 
   restaurantContainer.innerHTML = "";
 
-  if (!allRestaurants.hasOwnProperty("results")) {
+  if (restaurants.length === 0) {
     let instructions = document.createElement("p");
     instructions.classList.add("search-instructions");
     instructions.appendChild(
@@ -142,13 +151,13 @@ function showRestaurants(restaurantsResponse) {
         "No one has added their information yet! Fill out the form above to start seeing some results."
       )
     );
-
     restaurantContainer.appendChild(instructions);
     return;
   }
 
+  const domNodes = [];
   //This will be used to create a new div for every restaurant returned by the Places Library:
-  allRestaurants.results.forEach((restaurant) => {
+  for (const restaurant of restaurants) {
     let restaurantDiv = document.createElement("div");
     restaurantDiv.classList.add("restaurant-card");
 
@@ -196,31 +205,31 @@ function showRestaurants(restaurantsResponse) {
     rightDiv.appendChild(openingHours);
 
     restaurantDiv.appendChild(rightDiv);
+    domNodes.push(restaurantDiv);
     restaurantContainer.appendChild(restaurantDiv);
-  });
+  }
+  return domNodes;
 }
 
 // Initializes a Map.
-async function initMap(participantsResponse, restaurantsResponse) {
-  const eventId = getEventId();
-
-  // Checks if restaurant API responses is successful and restaurant data is not empty.
-  // Restuarant data could be empty in the case where there are no active participants in the database.
-  if (
-    restaurantsResponse.status === 200 &&
-    restaurantsResponse.data.hasOwnProperty("results")
-  ) {
-    const map = new google.maps.Map(document.getElementById("map"), {
-      // Centers Map around average geolocation when there is at least one participant.
+async function initMap(
+  participants,
+  { latitude, longitude },
+  restaurants,
+  restaurantCards
+) {
+  const mapElement = document.getElementById("map");
+  if (restaurants.length > 0) {
+    const map = new google.maps.Map(mapElement, {
+      // Center map around average geolocation when there is at least one participant.
       center: {
-        lat: restaurantsResponse.location.latitude,
-        lng: restaurantsResponse.location.longitude,
+        lat: latitude,
+        lng: longitude,
       },
       zoom: 13,
     });
-    // Add restaurant markers.
-    const restaurants = restaurantsResponse.data.results;
-    restaurants.forEach((restaurant) => {
+    // Add restaurant markers that show location of each restaurant on map
+    for (const restaurant of restaurants) {
       new google.maps.Marker({
         position: {
           lat: restaurant.geometry.location.lat,
@@ -229,11 +238,11 @@ async function initMap(participantsResponse, restaurantsResponse) {
         map: map,
         title: restaurant.name,
       });
-    });
-    // Add participants markers.
-    const participants = participantsResponse.data;
+    }
+
     const personIcon = "../images/personIcon.png";
-    participants.forEach((participant) => {
+    // Add participant markers that show location of each restaurant on map
+    for (const participant of participants) {
       new google.maps.Marker({
         position: {
           lat: participant.lat,
@@ -244,10 +253,10 @@ async function initMap(participantsResponse, restaurantsResponse) {
         icon: personIcon,
         animation: google.maps.Animation.DROP,
       });
-    });
+    }
   } else {
-    //Default map is centered around Los Angeles.
-    const map = new google.maps.Map(document.getElementById("map"), {
+    // The default map is centered around LA
+    new google.maps.Map(mapElement, {
       center: {
         lat: 34.052235,
         lng: -118.243683,
