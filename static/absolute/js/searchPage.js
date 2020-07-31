@@ -229,14 +229,19 @@ async function initMap(
       zoom: 13,
     });
     // Add restaurant markers that show location of each restaurant on map
-    for (const restaurant of restaurants) {
-      new google.maps.Marker({
+    for (let i = 0; i < restaurants.length; i++) {
+      const restaurant = restaurants[i];
+      const card = restaurantCards[i];
+      const marker = new google.maps.Marker({
         position: {
           lat: restaurant.geometry.location.lat,
           lng: restaurant.geometry.location.lng,
         },
         map: map,
         title: restaurant.name,
+      });
+      marker.addListener("click", () => {
+        card.scrollIntoView({ behavior: "smooth", alignToTop: true });
       });
     }
 
