@@ -27,3 +27,9 @@ For launching a datastore emulator locally, run `npm run datastore:start`. This 
 
 ## Server
 For testing the server, run `npm run watch`. This will launch the server. It will also restart the server every time a source file changes.
+
+Because of socket.io, we need to kill the server from the command line before restarting it (if using `npm run watch`). nodemon.json contains a command for nodemon to use to restart the server (instead of whatever nodemon does by default).
+
+For this to work, you need to be running Linux and have the `fuser` command installed. You might also need to tweak the delay field for your computer. The higher the delay field, the longer nodemon will wait before restarting the server. This will give time for the `fuser` command to run.
+
+If all of this sounds like too much work, just use `npm run start` and restart the server manually with Ctrl-C.

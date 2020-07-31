@@ -360,6 +360,7 @@ function encodeAddress(address) {
   return formattedAddress;
 }
 
+// This number should be kept in sync with the port number in nodemon.json
 const port = 8080;
 const server = app.listen(port, () =>
   console.log(`Server listening on http://localhost:${port}`)
