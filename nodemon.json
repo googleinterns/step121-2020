@@ -1,0 +1,7 @@
+{
+  "events": {
+    "restart": "sudo fuser -k 8080/tcp",
+    "crash": "sudo fuser -k 8080/tcp"
+  },
+  "delay": "750"
+}
