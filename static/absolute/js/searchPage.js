@@ -2,7 +2,7 @@ const socket = io();
 socket.emit("join", getEventId());
 
 window.onload = function () {
-  initInviteButton()
+  initInviteButton();
   refreshUI();
 
   document.getElementById("search-btn").addEventListener("click", async () => {

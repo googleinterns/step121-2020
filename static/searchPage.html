@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <title>Ogene - Group Search</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=APIkey"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAM2CwINrDFcPP4uoEKZ1iVlPgzUryWgfc"></script>
     <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="/css/searchPage.css" />
   </head>
 
-  <body>
-    <div id="header-banner">
+  <body class="parent">
+    <div id="header-banner" class="header">
       <img id="logo" src="/images/logo.png" alt="Ogene" />
       <div class="search-bar">
         <div>
@@ -20,88 +20,35 @@
             type="text"
             name="name"
             value=""
+            placeholder="Name"
           />
         </div>
-        <div class="m-left-m">
-          <label class="search-label" for="flocation"
-            >Address (Optional): &emsp;</label
-          >
+        <div class="ml-m">
+          <label class="search-label" for="flocation">Address: &emsp;</label>
           <input
             id="address-input"
             class="input search-padding"
             type="text"
             name="location"
             value=""
-            placeholder="The more specific the better"
+            placeholder="Enter a place, town, or postal code:"
           />
         </div>
-        <button id="search-btn" class="m-left-s search-padding" type="button">
+        <button id="search-btn" class="ml-s search-padding" type="button">
           Search
         </button>
       </div>
       <div class="header-button-container">
-        <button class="banner-btn" id="share-invite-btn">
-          Copy Invite URL
-        </button>
-        <button class="banner-btn m-left-s" id="participants-btn">
-          Participants
+        <button class="banner-btn" id="share-invite-btn"></button>
+        <button class="banner-btn ml-s" id="participants-btn">
+          View Participants
         </button>
       </div>
     </div>
 
-<<<<<<< HEAD
-    <div id="input-form">
-      <h2 id="session-name">Session name</h2>
-      <div class="textb">
-        <label for="fname">Name: &emsp;</label>
-        <input
-          id="name-input"
-          class="input"
-          type="text"
-          name="name"
-          value=""
-          placeholder="Name"
-        />
-      </div>
-      <div id="input-form">
-        <h2 id="session-name">Session name</h2>
-        <div class="textb">
-          <label for="fname">Name: &emsp;</label>
-          <input
-            id="name-input"
-            class="input"
-            type="text"
-            name="name"
-            value=""
-            placeholder="Name"
-          />
-        </div>
-        <div class="textb">
-          <label for="flocation">Address:</label>
-          <input
-            id="address-input"
-            class="input"
-            type="text"
-            name="location"
-            value=""
-            placeholder="Enter a place, town, or postal code:"
-          />
-        </div>
-        <button id="search-btn" type="button">Search</button>
-      </div>
+    <div id="restaurant-container" class="results"></div>
+    <div id="map" class="map"></div>
 
-      <div id="search-results">
-        <h1 id="results-title">Results</h1>
-        <div id="restaurant-container"></div>
-      </div>
-=======
-    <div id="search-results">
-      <h1 id="results-title">Results</h1>
-      <div id="restaurant-container"></div>
->>>>>>> 6785556... Move search bar
-    </div>
-
-    <div id="map"></div>
     <script src="/js/globals.js"></script>
     <script src="/js/searchPage.js"></script>
   </body>
