@@ -2,17 +2,17 @@ body {
   font-family: Helvetica, sans-serif;
   margin: 0px;
 }
-
+ 
 /* margin left small */
 .ml-s {
   margin-left: 15px;
 }
-
+ 
 /* margin left medium */
 .ml-m {
   margin-left: 25px;
 }
-
+ 
 /* Banner at top of page contains logo */
 #header-banner {
   display: flex;
@@ -22,28 +22,28 @@ body {
   border: 1px solid #ccc;
   background-color: whitesmoke;
 }
-
+ 
 .search-bar {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
+ 
 .header-button-container {
   display: flex;
 }
-
+ 
 #logo {
   display: inline-block;
   width: 130px;
   height: 90px;
 }
-
+ 
 .search-padding {
   padding: 12px 25px;
 }
-
+ 
 .parent {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -52,7 +52,7 @@ body {
   grid-row-gap: 0px;
   height: 100vh;
 }
-
+ 
 .header {
   grid-area: 1 / 1 / 2 / 13;
 }
@@ -66,7 +66,7 @@ body {
 .map {
   grid-area: 2 / 8 / 13 / 13;
 }
-
+ 
 .input {
   width: 300px;
   margin: 8px 0;
@@ -76,18 +76,18 @@ body {
   transition: 0.5s;
   outline: none;
 }
-
+ 
 .input:focus {
   border: 3px solid #555;
 }
-
+ 
 .search-label {
   text-align: left;
   color: #444;
   font-weight: 600;
   font-size: 14px;
 }
-
+ 
 #search-btn {
   background-color: #fe5f55;
   border: 1px solid rgb(145, 145, 145);
@@ -97,43 +97,65 @@ body {
   text-decoration: none;
   font-size: 16px;
 }
-
+ 
 #search-btn:hover {
   background-color: rgb(226, 55, 43);
 }
-
+ 
 .search-instructions {
   color: rgb(145, 145, 145);
   font-size: 1.5em;
 }
-
-.restaurant-card {
+ 
+.info-div {
   display: grid;
-  grid-template-columns: 50% auto;
+  grid-template-columns: 25% auto auto;
+}
+ 
+.restaurant-card {
   border: 1px solid #d4ede0;
   border-radius: 0.5rem;
   margin-top: 25px;
   padding: 25px;
 }
-
+ 
 .restaurant-card:hover {
   box-shadow: 3px 3px 15px #d1d1d1;
   transition: box-shadow 0.3s ease-in-out;
 }
-
+ 
+.restaurant-car:active {
+  box-shadow: 3px 3px 15px #d1d1d1;
+}
+ 
 .restaurant-name {
   color: #fe5f55;
 }
-
+ 
 .restaurant-info {
   color: #444;
 }
-
+ 
 .restaurant-basic-info {
   text-align: right;
   color: #444;
 }
-
+ 
+.review-header {
+  color: #fe5f55;
+  font-weight: bold;
+  margin-top: 0px;
+}
+ 
+.more-info-link {
+  color: #fe5f55;
+  margin-bottom: 0px;
+}
+ 
+.more-info-link:hover {
+  cursor: pointer;
+}
+ 
 .banner-btn {
   padding: 12px 25px;
   text-decoration: none;
@@ -143,11 +165,11 @@ body {
   border: 2px solid #fe5f55;
   border-radius: 0.5rem;
 }
-
+ 
 .banner-btn:hover {
   background-color: rgb(245, 156, 150);
 }
-
+ 
 #participants-btn {
   margin-right: 25px;
 }
