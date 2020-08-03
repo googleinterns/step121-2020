@@ -111,27 +111,49 @@ socket.on("refresh", () => {
 async function refreshUI() {
   const eventId = getEventId();
 
-  // Fetch in parallel
-  const [participantsResponse, restaurantsResponse] = await Promise.all([
-    fetch(`/api/${eventId}/participants`).then((response) => response.json()),
-    fetch(`/api/${eventId}/restaurants`).then((response) => response.json()),
-  ]);
+  let failure = false;
+  let map = null;
+  const LACoords = [34.052235, -118.243683];
 
-  if (
-    participantsResponse.status !== 200 ||
-    restaurantsResponse.status !== 200
-  ) {
-    console.error(`Failed to fetch from endpoints`);
-    return;
-  }
+  fetch(`/api/${eventId}/participants`)
+    .then((response) => response.json())
+    .then(({ status, data }) => {
+      if (status != 200 || failure) {
+        failure = true;
+        return;
+      }
+      const { participants, center } = data;
+      if (participants.length == 0) {
+        if (center !== null)
+          console.error(`Expected center to be null, it was: ${center}`);
+        // If there's no participants, center the map around LA
+        map = centerMap(map, ...LACoords);
+      } else {
+        const { latitude, longitude } = center;
+        map = centerMap(map, latitude, longitude);
+        addParticipants(map, participants);
+      }
+    });
 
-  const { data: participants } = participantsResponse;
-  const {
-    data: { places, center },
-  } = restaurantsResponse;
-
-  const domNodes = showRestaurants(places);
-  initMap(participants, center, places, domNodes);
+  fetch(`/api/${eventId}/restaurants`)
+    .then((response) => response.json())
+    .then(({ status, data }) => {
+      if (status != 200 || failure) {
+        failure = true;
+        return;
+      }
+      const { places, center } = data;
+      if (places.length === 0) {
+        if (center !== null)
+          console.error(`Expected center to be null, it was: ${center}`);
+        map = centerMap(map, ...LACoords);
+      } else {
+        const { latitude, longitude } = center;
+        map = centerMap(map, latitude, longitude);
+        const domNodes = showRestaurants(places);
+        addRestaurants(map, places, domNodes);
+      }
+    });
 }
 
 /**
@@ -211,62 +233,52 @@ function showRestaurants(restaurants) {
   return domNodes;
 }
 
-// Initializes a Map.
-async function initMap(
-  participants,
-  { latitude, longitude },
-  restaurants,
-  restaurantCards
-) {
-  const mapElement = document.getElementById("map");
-  if (restaurants.length > 0) {
-    const map = new google.maps.Map(mapElement, {
-      // Center map around average geolocation when there is at least one participant.
-      center: {
-        lat: latitude,
-        lng: longitude,
+function addParticipants(map, participants) {
+  const personIcon = "../images/personIcon.png";
+  for (const participant of participants) {
+    new google.maps.Marker({
+      position: {
+        lat: participant.lat,
+        lng: participant.long,
       },
-      zoom: 13,
-    });
-    // Add restaurant markers that show location of each restaurant on map
-    for (let i = 0; i < restaurants.length; i++) {
-      const restaurant = restaurants[i];
-      const card = restaurantCards[i];
-      const marker = new google.maps.Marker({
-        position: {
-          lat: restaurant.geometry.location.lat,
-          lng: restaurant.geometry.location.lng,
-        },
-        map: map,
-        title: restaurant.name,
-      });
-      marker.addListener("click", () => {
-        card.scrollIntoView({ behavior: "smooth", alignToTop: true });
-      });
-    }
-
-    const personIcon = "../images/personIcon.png";
-    // Add participant markers that show location of each restaurant on map
-    for (const participant of participants) {
-      new google.maps.Marker({
-        position: {
-          lat: participant.lat,
-          lng: participant.long,
-        },
-        map: map,
-        title: participant.name,
-        icon: personIcon,
-        animation: google.maps.Animation.DROP,
-      });
-    }
-  } else {
-    // The default map is centered around LA
-    new google.maps.Map(mapElement, {
-      center: {
-        lat: 34.052235,
-        lng: -118.243683,
-      },
-      zoom: 13,
+      map,
+      title: participant.name,
+      icon: personIcon,
+      animation: google.maps.Animation.DROP,
     });
   }
+}
+
+function addRestaurants(map, restaurants, restaurantCards) {
+  for (let i = 0; i < restaurants.length; i++) {
+    const restaurant = restaurants[i];
+    const card = restaurantCards[i];
+    const marker = new google.maps.Marker({
+      position: {
+        lat: restaurant.geometry.location.lat,
+        lng: restaurant.geometry.location.lng,
+      },
+      map: map,
+      title: restaurant.name,
+    });
+    marker.addListener("click", () => {
+      card.scrollIntoView({ behavior: "smooth", alignToTop: true });
+    });
+  }
+}
+
+function centerMap(map, lat, lng) {
+  // Don't need to worry about race conditions b/c JS is single threaded
+  if (map === null) {
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: {
+        lat,
+        lng,
+      },
+      zoom: 13,
+    });
+  } else {
+    map.setCenter(new google.maps.LatLng(lat, lng));
+  }
+  return map;
 }
