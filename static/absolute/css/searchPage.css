@@ -159,6 +159,7 @@ hr {
 
 .more-info-link:hover {
   cursor: pointer;
+  color: rgb(245, 156, 150);
 }
 
 .banner-btn {
