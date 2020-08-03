@@ -130,10 +130,6 @@ hr {
   transition: box-shadow 0.3s ease-in-out;
 }
 
-.restaurant-car:active {
-  box-shadow: 3px 3px 15px #d1d1d1;
-}
-
 .restaurant-name {
   color: #fe5f55;
 }
