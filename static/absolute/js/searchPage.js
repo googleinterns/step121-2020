@@ -133,7 +133,7 @@ async function showRestaurants(restaurantResponse) {
     let restaurantErrorMessage = document.createElement("p");
     restaurantErrorMessage.classList.add("search-instructions");
     let messageText =
-      restaurantResponse.data === "ZERO_RESULTS"
+      restaurantResponse.error.type === "ZERO_RESULTS"
         ? "We could not find any restaurants. Check to make sure you are using the correct address."
         : "Something went wrong when searching for restaurants.";
     restaurantErrorMessage.appendChild(document.createTextNode(messageText));
