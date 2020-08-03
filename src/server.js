@@ -161,10 +161,16 @@ app.post(
   async (request, response) => {
     const { body, datastoreKey: key, event } = request;
     const [lat, long] = body.location;
-    const { name } = body;
+    const { name, address } = body;
     event.users = event.users || {};
     const userInfo = event.users[request.session.userID] || {};
-    event.users[request.session.userID] = { ...userInfo, name, lat, long };
+    event.users[request.session.userID] = {
+      ...userInfo,
+      name,
+      lat,
+      long,
+      address,
+    };
     datastore
       // Datastore attaches a "symbol" (https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
       // to any entities returned from a query. We don't want to store this attached metadata back into the database

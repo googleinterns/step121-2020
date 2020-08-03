@@ -50,6 +50,7 @@ window.onload = function () {
         headers: window.HEADER_CONTENT_TYPE_JSON,
         body: JSON.stringify({
           name,
+          address,
           location: [lat, long],
         }),
       });
@@ -66,8 +67,6 @@ window.onload = function () {
       alert("error posting to api");
       return;
     }
-    nameInput.value = "";
-    addressInput.value = "";
   });
 
   document.getElementById("participants-btn").addEventListener("click", () => {
@@ -110,6 +109,13 @@ socket.on("refresh", () => {
 
 async function refreshUI() {
   const eventId = getEventId();
+
+  fetch(`/api/${eventId}/me`)
+    .then((response) => response.json())
+    .then(({ data: { name, address } = {} }) => {
+      document.getElementById("name-input").value = name ? name : "";
+      document.getElementById("address-input").value = address ? address : "";
+    });
 
   let failure = false;
   let map = null;
