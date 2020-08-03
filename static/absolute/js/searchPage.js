@@ -184,7 +184,7 @@ async function showRestaurants(restaurantResponse) {
       let imageDiv = document.createElement("div");
 
       let width = "150"; //px
-      let placePhototsResponse =
+      let placePhotosRequest =
         "https://maps.googleapis.com/maps/api/place/photo?photoreference=" +
         restaurant.photos[0].photo_reference +
         "&maxwidth=" +
@@ -193,7 +193,7 @@ async function showRestaurants(restaurantResponse) {
         "APIKey";
 
       let image = document.createElement("img");
-      image.src = placePhototsResponse;
+      image.src = placePhotosRequest;
       image.width = width;
 
       imageDiv.appendChild(image);
