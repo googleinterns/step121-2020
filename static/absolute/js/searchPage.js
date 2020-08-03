@@ -23,15 +23,17 @@ window.onload = function () {
         lat = latitude;
         long = longitude;
         latlng = lat.toString() + ',' + long.toString();
-        geocodedPosition = await (
+        const reverseGeocodedPosition = await (
         await fetch(`/api/reverseGeocode?latlng=${latlng}`)
       ).json();
-    //   address = reverseGeocodedPosition;
+    //   If address is empty, use reverse-geocoded HTML geolocation.
+      address = reverseGeocodedPosition.data;
       } catch (err) {
         alert("Failed to get position, please enter address.");
         return;
       }
     } else {
+    // Geocode address input for coordinates.
       const coords = await (
         await fetch(`/api/geocode?address=${address}`)
       ).json();
@@ -46,7 +48,6 @@ window.onload = function () {
         return;
       }
     }
-
     let postResponse;
     const eventId = getEventId();
     try {

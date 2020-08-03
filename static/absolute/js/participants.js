@@ -30,6 +30,7 @@ async function showParticipants() {
     participants
       .map((p) => ({ ...p, location: `${p.lat},${p.long}` }))
       .forEach((participant) => {
+        console.log(participant.address);
         let newDiv = document.createElement("div");
         newDiv.classList.add("participant-card");
 
@@ -38,10 +39,10 @@ async function showParticipants() {
         name.appendChild(document.createTextNode(participant.name));
         newDiv.appendChild(name);
 
-        let location = document.createElement("p");
-        location.classList.add("participant-info");
-        location.appendChild(document.createTextNode(participant.location));
-        newDiv.appendChild(location);
+        let address = document.createElement("p");
+        address.classList.add("participant-info");
+        address.appendChild(document.createTextNode(participant.address));
+        newDiv.appendChild(address);
 
         participantContainer.appendChild(newDiv);
       });

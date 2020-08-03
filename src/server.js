@@ -20,6 +20,7 @@ const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
 const ERROR_GEOCODING_FAILED = "GEOCODING_FAILED";
+const ERROR_REVERSE_GEOCODING_FAILED = "REVERSE_GEOCODING_FAILED";
 const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
 
 app.use(express.static("static/absolute"));
@@ -162,9 +163,16 @@ app.post(
     const { body, datastoreKey: key, event } = request;
     const [lat, long] = body.location;
     const { name } = body;
+    const address  = body.address;
     event.users = event.users || {};
     const userInfo = event.users[request.session.userID] || {};
-    event.users[request.session.userID] = { ...userInfo, name, lat, long };
+    event.users[request.session.userID] = {
+      ...userInfo,
+      name,
+      lat,
+      long,
+      address,
+    };
     datastore
       // Datastore attaches a "symbol" (https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
       // to any entities returned from a query. We don't want to store this attached metadata back into the database
@@ -346,7 +354,7 @@ app.get(`${PREFIX_API}/geocode`, async (request, response) => {
     console.error(err);
     response
       .status(500)
-      .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
+      .json({ status: 500, error: { type: ERROR_REVERSE_GEOCODING_FAILED } });
   }
 });
 
@@ -359,6 +367,40 @@ function encodeAddress(address) {
     .replace(")", "%29");
   return formattedAddress;
 }
+
+app.get(`${PREFIX_API}/reverseGeocode`, async (request, response) => {
+  const latlng = request.query.latlng;
+
+  const reverseGeocodeRequest =
+    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=
+    ${env.API_KEY_GEOCODE}`;
+    
+  try {
+    const reverseGeocodeResponse = await (await fetch(reverseGeocodeRequest)).json();
+    const {status} = reverseGeocodeResponse;
+
+    if (status !== "OK") {
+      console.error(
+        "Geocoding error occured. Api response status: " + status
+      );
+      response
+        .status(500)
+        .json({ status: 500, error: { type: status } });
+    } else {
+      response.json({
+        status: 200,
+        data: reverseGeocodeResponse.results[0].formatted_address,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    response
+      .status(500)
+      .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
+  }
+});
+
+
 
 const port = 8080;
 const server = app.listen(port, () =>
