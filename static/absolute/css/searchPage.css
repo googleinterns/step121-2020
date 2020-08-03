@@ -152,12 +152,12 @@ hr {
   padding: 25px;
 }
 
-.more-info-link {
+.show-more-link {
   color: #fe5f55;
   margin-bottom: 0px;
 }
 
-.more-info-link:hover {
+.show-more-link:hover {
   cursor: pointer;
   color: rgb(245, 156, 150);
 }

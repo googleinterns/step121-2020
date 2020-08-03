@@ -124,9 +124,6 @@ async function refreshUI() {
 /**
  * Creates HTML elements for the restaurant details and adds it
  * to a container in searchResults.html.
- *
- * For now, this function deals with hard-coded data, but this
- * can be used as a template for when we get data the Places Library results.
  */
 async function showRestaurants(restaurantResponse) {
   const restaurantContainer = document.getElementById("restaurant-container");
@@ -163,10 +160,10 @@ async function showRestaurants(restaurantResponse) {
   //Used to get additional information about the restaurant results.
   const fields = "url,formatted_phone_number,website,review";
 
-  //This will be used to create a new div for every restaurant returned by the Places Library:
+  //Create a new div for every restaurant returned by the Places Library:
   let restaurantIndex = 1;
   for (restaurant of allRestaurants.results) {
-    //Get additional details for every restaurant.
+    //Get additional details for every restaurant using that restaurant's place id.
     let placeDetailsResponse = await (
       await fetch(
         `/api/placedetails?fields=${fields}&id=${restaurant.place_id}`
@@ -182,24 +179,28 @@ async function showRestaurants(restaurantResponse) {
     let infoDiv = document.createElement("div");
     infoDiv.classList.add("info-div");
 
-    //Create a section to hold the image
+    //Create a section to hold the image.
     try {
       let imageDiv = document.createElement("div");
-      // if (placePhotosResponse.hasOwnProperty("data")) {
       let image = document.createElement("img");
+      let width = "150"; //px
+
       image.src =
         "https://maps.googleapis.com/maps/api/place/photo?photoreference=" +
         restaurant.photos[0].photo_reference +
-        "&maxwidth=150&key=" +
+        "&maxwidth=" +
+        width +
+        "&key=" +
         "APIKey";
-      image.width = "150"; //px
+      image.width = width;
+
       imageDiv.appendChild(image);
       infoDiv.appendChild(imageDiv);
     } catch (err) {
       console.log("Restaurant image could not be retrieved. Error: " + err);
     }
 
-    // Add information to the left side of the restaurant card. This contains name and atmospheric information
+    // Add information to the left side of the restaurant card. This contains name and atmospheric information.
     let leftDiv = document.createElement("div");
 
     let name = document.createElement("h2");
@@ -232,7 +233,7 @@ async function showRestaurants(restaurantResponse) {
 
     infoDiv.appendChild(leftDiv);
 
-    //Add information to the left side of the restaurant card. This contains contact information.
+    //Add information to the left side of the restaurant card. This contains basic and contact information.
     let rightDiv = document.createElement("div");
 
     if (restaurant.hasOwnProperty("vicinity")) {
@@ -276,22 +277,25 @@ async function showRestaurants(restaurantResponse) {
 
     infoDiv.appendChild(rightDiv);
 
-    //Add review to the card when clicked.
+    //Show reviews and a link to restaurant listing on Google when 'show more' button is clicked.
     let moreInfoDiv = document.createElement("div");
     moreInfoDiv.classList.add("restaurant-info");
 
+    //Add review section to the card.
     if (additionalDetails.hasOwnProperty("reviews")) {
-      let reviewContainerDiv = document.createElement("div");
+      let reviewContainer = document.createElement("div");
 
-      //Create header for review section
+      //Create header for review section.
       let reviewDivHeader = document.createElement("h3");
       reviewDivHeader.appendChild(document.createTextNode("Reviews"));
       reviewDivHeader.classList.add("review-header");
-      reviewContainerDiv.appendChild(reviewDivHeader);
-      reviewContainerDiv.appendChild(document.createElement("hr"));
+      reviewContainer.appendChild(reviewDivHeader);
+
+      reviewContainer.appendChild(document.createElement("hr"));
 
       let reviews = additionalDetails.reviews;
       for (i = 0; i < reviews.length && i < 2; i++) {
+        //Show only two results for simplicity.
         let reviewerName = reviews[i].hasOwnProperty("author_name")
           ? reviews[i].author_name
           : "";
@@ -313,13 +317,12 @@ async function showRestaurants(restaurantResponse) {
         individualReviewDiv.appendChild(individualReviewHeader);
         individualReviewDiv.appendChild(reviewText);
 
-        reviewContainerDiv.appendChild(individualReviewDiv);
-        reviewContainerDiv.appendChild(document.createElement("hr"));
+        reviewContainer.appendChild(individualReviewDiv);
+        reviewContainer.appendChild(document.createElement("hr"));
       }
-      moreInfoDiv.appendChild(reviewContainerDiv);
+      moreInfoDiv.appendChild(reviewContainer);
+      moreInfoDiv.appendChild(document.createElement("br"));
     }
-
-    moreInfoDiv.appendChild(document.createElement("br"));
 
     if (additionalDetails.hasOwnProperty("url")) {
       let listingLink = document.createElement("a");
@@ -331,28 +334,28 @@ async function showRestaurants(restaurantResponse) {
 
     moreInfoDiv.style.display = "none";
 
-    //Create a link to show moreInfoDiv
-    let moreInfoLink = document.createElement("p");
-    moreInfoLink.classList.add("more-info-link", "restaurant-info");
-    moreInfoLink.innerHTML = "Show More &#8595;"; //With down arrow
+    //Create a link to show and hide the moreInfoDiv (reviews and restaurant listing).
+    let showMoreLink = document.createElement("p");
+    showMoreLink.classList.add("show-more-link", "restaurant-info");
+    showMoreLink.innerHTML = "Show More &#8595;"; //With down arrow
 
-    moreInfoLink.onclick = function () {
+    showMoreLink.onclick = function () {
       if (moreInfoDiv.style.display === "inline") {
         moreInfoDiv.style.display = "none";
-        moreInfoLink.innerHTML = "Show More &#8595;"; //With down arrow
+        showMoreLink.innerHTML = "Show More &#8595;"; //With down arrow
       } else {
         moreInfoDiv.style.display = "inline";
-        moreInfoLink.innerHTML = "Show Less &#8593;"; //With up arrow
+        showMoreLink.innerHTML = "Show Less &#8593;"; //With up arrow
       }
     };
 
-    //Add the two info sections to a restaurant card div.
+    //Add the two info sections and show more/show less button to a restaurant card div.
     let restaurantCardDiv = document.createElement("div");
     restaurantCardDiv.classList.add("restaurant-card");
 
     restaurantCardDiv.appendChild(infoDiv);
     restaurantCardDiv.appendChild(moreInfoDiv);
-    restaurantCardDiv.appendChild(moreInfoLink);
+    restaurantCardDiv.appendChild(showMoreLink);
 
     restaurantContainer.appendChild(restaurantCardDiv);
     restaurantIndex++;
