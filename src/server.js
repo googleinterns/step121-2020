@@ -7,47 +7,47 @@ const cookieSession = require("cookie-session");
 const datastore = require("./datastore");
 const fetch = require("node-fetch");
 const { env } = process;
- 
+
 const app = express();
- 
+
 const KIND_EVENT = "Event";
 const URL_PARAM_EVENT_ID = `eventID`;
- 
+
 // TODO(ved): There's definitely a cleaner way to do this.
 const PREFIX_API = "/api";
- 
+
 const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
 const ERROR_GEOCODING_FAILED = "GEOCODING_FAILED";
 const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
 const ERROR_PLACE_DETAILS_FAILED = "PLACE_DETAILS_FAILED";
- 
+
 app.use(express.static("static/absolute"));
- 
+
 function getAbsolutePath(htmlFileName) {
   return path.join(process.cwd(), "static", htmlFileName);
 }
- 
+
 app.get("/", (_, response) => {
   response.redirect("/create");
 });
- 
+
 app.get(`/create`, (_, response) => {
   response.sendFile(getAbsolutePath("createSession.html"));
 });
- 
+
 app.get(`/:${URL_PARAM_EVENT_ID}`, (_, response) => {
   response.sendFile(getAbsolutePath("searchPage.html"));
 });
- 
+
 app.get(`/:${URL_PARAM_EVENT_ID}/participants`, (_, response) => {
   response.sendFile(getAbsolutePath("participants.html"));
 });
- 
+
 // Parse request bodies with the json content header into JSON
 app.use(express.json());
- 
+
 app.use(
   cookieSession({
     name: "session",
@@ -55,7 +55,7 @@ app.use(
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
   })
 );
- 
+
 /**
  * Middleware that attaches to every request and checks if there
  * is a user id. If not, we assume this is a new user and give
@@ -81,7 +81,7 @@ app.use((request, response, next) => {
   }
   next();
 });
- 
+
 /**
  *  Middleware that can be used on routes that match `/:${URL_PARAM_EVENT_ID}/...`
  *  This will fetch the event from Datastore and attach it and its key to
@@ -140,7 +140,7 @@ async function getEvent(request, response, next) {
       });
     });
 }
- 
+
 app.post(`${PREFIX_API}/create`, async (request, response) => {
   const { name } = request.body;
   const key = datastore.key([KIND_EVENT]);
@@ -155,7 +155,7 @@ app.post(`${PREFIX_API}/create`, async (request, response) => {
     eventID: result[0].mutationResults[0].key.path[0].id,
   });
 });
- 
+
 app.post(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}`,
   getEvent,
@@ -183,7 +183,7 @@ app.post(
       });
   }
 );
- 
+
 app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/name`,
   getEvent,
@@ -191,7 +191,7 @@ app.get(
     response.json({ status: 200, data: request.event.name });
   }
 );
- 
+
 app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/me`,
   getEvent,
@@ -205,7 +205,7 @@ app.get(
     });
   }
 );
- 
+
 function averageGeolocation(coords) {
   if (coords.length === 0) {
     return {};
@@ -222,29 +222,29 @@ function averageGeolocation(coords) {
     for (let coord of coords) {
       let latitude = (coord.lat * Math.PI) / 180;
       let longitude = (coord.long * Math.PI) / 180;
- 
+
       x += Math.cos(latitude) * Math.cos(longitude);
       y += Math.cos(latitude) * Math.sin(longitude);
       z += Math.sin(latitude);
     }
- 
+
     let total = coords.length;
- 
+
     x = x / total;
     y = y / total;
     z = z / total;
- 
+
     let centralLongitude = Math.atan2(y, x);
     let centralSquareRoot = Math.sqrt(x * x + y * y);
     let centralLatitude = Math.atan2(z, centralSquareRoot);
- 
+
     return {
       latitude: (centralLatitude * 180) / Math.PI,
       longitude: (centralLongitude * 180) / Math.PI,
     };
   }
 }
- 
+
 app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/restaurants`,
   getEvent,
@@ -252,7 +252,7 @@ app.get(
     const { event } = request;
     const users = event.users || {};
     const userData = Object.values(users);
- 
+
     if (userData.length > 0) {
       const { latitude, longitude } = averageGeolocation(userData);
       const lat = latitude.toString();
@@ -261,7 +261,7 @@ app.get(
       const type = "restaurant";
       const minprice = "0";
       const maxprice = "4";
- 
+
       // Try for invalid Json Response.
       try {
         const placesApiResponse = await (
@@ -269,7 +269,7 @@ app.get(
             `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&rankby=${rankby}&type=${type}&minprice=${minprice}&maxprice=${maxprice}&key=${env.API_KEY_PLACES}`
           )
         ).json();
- 
+
         const { status } = placesApiResponse;
         if (status !== "OK") {
           console.error("Places API error. Status: " + status);
@@ -302,11 +302,11 @@ app.get(
     }
   }
 );
- 
+
 app.get(`${PREFIX_API}/placedetails`, async (request, response) => {
   const placeId = encodeForURL(request.query.id);
   const fields = encodeForURL(request.query.fields);
- 
+
   const placeDetailsRequest =
     "https://maps.googleapis.com/maps/api/place/details/json?place_id=" +
     placeId +
@@ -314,13 +314,13 @@ app.get(`${PREFIX_API}/placedetails`, async (request, response) => {
     fields +
     "&key=" +
     env.API_KEY_PLACES;
- 
+
   try {
     const placeDetailsResponse = await (
       await fetch(placeDetailsRequest)
     ).json();
     const responseStatus = placeDetailsResponse.status;
- 
+
     if (responseStatus !== "OK") {
       console.error(
         "Place Details error occured. Api response status: " + responseStatus
@@ -341,7 +341,7 @@ app.get(`${PREFIX_API}/placedetails`, async (request, response) => {
       .json({ status: 500, error: { type: ERROR_PLACE_DETAILS_FAILED } });
   }
 });
- 
+
 app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/participants`,
   getEvent,
@@ -354,20 +354,20 @@ app.get(
     });
   }
 );
- 
+
 app.get(`${PREFIX_API}/geocode`, async (request, response) => {
   const address = encodeForURL(request.query.address);
- 
+
   const geocodeRequest =
     "https://maps.googleapis.com/maps/api/geocode/json?address=" +
     address +
     "&key=" +
     env.API_KEY_GEOCODE;
- 
+
   try {
     const geocodeResponse = await (await fetch(geocodeRequest)).json();
     const geocodeResponseStatus = geocodeResponse.status;
- 
+
     if (geocodeResponseStatus !== "OK") {
       console.error(
         "Geocoding error occured. Api response status: " + geocodeResponseStatus
@@ -389,7 +389,7 @@ app.get(`${PREFIX_API}/geocode`, async (request, response) => {
       .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
   }
 });
- 
+
 function encodeForURL(address) {
   const formattedAddress = encodeURIComponent(address)
     .replace("!", "%21")
@@ -399,16 +399,16 @@ function encodeForURL(address) {
     .replace(")", "%29");
   return formattedAddress;
 }
- 
+
 // This number should be kept in sync with the port number in nodemon.json
 const port = 8080;
 const server = app.listen(port, () =>
   console.log(`Server listening on http://localhost:${port}`)
 );
- 
+
 //Attach Socket.io to the existing express server.
 const io = require("socket.io")(server);
- 
+
 //When socket.io is connected to the server, we can listen for events.
 io.on("connection", (socket) => {
   //Add client socket to a room based on the session ID. This will allow only clients with the same ID to communicate.
@@ -416,4 +416,3 @@ io.on("connection", (socket) => {
     socket.join(eventId);
   });
 });
-
