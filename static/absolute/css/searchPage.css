@@ -2,6 +2,12 @@ body {
   font-family: Helvetica, sans-serif;
   margin: 0px;
 }
+
+hr {
+  height: 1px;
+  background-color: #d4ede0;
+  border: none;
+}
  
 /* margin left small */
 .ml-s {
@@ -144,7 +150,10 @@ body {
 .review-header {
   color: #fe5f55;
   font-weight: bold;
-  margin-top: 0px;
+}
+
+.individual-review {
+  padding: 25px;
 }
  
 .more-info-link {

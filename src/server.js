@@ -304,8 +304,8 @@ app.get(
 );
  
 app.get(`${PREFIX_API}/placedetails`, async (request, response) => {
-  const placeId = request.query.id;
-  const fields = request.query.fields;
+  const placeId = encodeForURL(request.query.id);
+  const fields = encodeForURL(request.query.fields);
  
   const placeDetailsRequest =
     "https://maps.googleapis.com/maps/api/place/details/json?place_id=" +
@@ -356,7 +356,7 @@ app.get(
 );
  
 app.get(`${PREFIX_API}/geocode`, async (request, response) => {
-  const address = encodeAddress(request.query.address);
+  const address = encodeForURL(request.query.address);
  
   const geocodeRequest =
     "https://maps.googleapis.com/maps/api/geocode/json?address=" +
@@ -390,7 +390,7 @@ app.get(`${PREFIX_API}/geocode`, async (request, response) => {
   }
 });
  
-function encodeAddress(address) {
+function encodeForURL(address) {
   const formattedAddress = encodeURIComponent(address)
     .replace("!", "%21")
     .replace("*", "%2A")

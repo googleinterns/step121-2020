@@ -191,7 +191,7 @@ async function showRestaurants(restaurantResponse) {
         "https://maps.googleapis.com/maps/api/place/photo?photoreference=" +
         restaurant.photos[0].photo_reference +
         "&maxwidth=150&key=" +
-        "ApiKey";
+        "APIKey";
       image.width = "150"; //px
       imageDiv.appendChild(image);
       infoDiv.appendChild(imageDiv);
@@ -219,6 +219,13 @@ async function showRestaurants(restaurantResponse) {
         document.createTextNode("Rating: " + restaurant.rating)
       );
       leftDiv.appendChild(rating);
+    }
+
+    if (restaurant.hasOwnProperty("price_level")) {
+      let priceLevel = document.createElement("p");
+      priceLevel.classList.add("restaurant-info");
+      priceLevel.appendChild(document.createTextNode("$".repeat(restaurant.price_level)));
+      leftDiv.appendChild(priceLevel);
     }
  
     infoDiv.appendChild(leftDiv);
@@ -279,6 +286,7 @@ async function showRestaurants(restaurantResponse) {
       reviewDivHeader.appendChild(document.createTextNode("Reviews"));
       reviewDivHeader.classList.add("review-header");
       reviewContainerDiv.appendChild(reviewDivHeader);
+      reviewContainerDiv.appendChild(document.createElement("hr"));
  
       let reviews = additionalDetails.reviews;
       for (i = 0; i < reviews.length && i < 2; i++) {
@@ -289,22 +297,25 @@ async function showRestaurants(restaurantResponse) {
           ? reviews[i].relative_time_description
           : "";
  
-        let reviewHeader = document.createElement("p");
-        reviewHeader.appendChild(
+        let individualReviewHeader = document.createElement("p");
+        individualReviewHeader.appendChild(
           document.createTextNode(reviewerName + " - " + reviewTime)
         );
         let reviewText = document.createElement("p");
         reviewText.appendChild(document.createTextNode("\"" + reviews[i].text + "\""));
  
-        let reviewDiv = document.createElement("div");
-        reviewDiv.appendChild(reviewHeader);
-        reviewDiv.appendChild(reviewText);
+        let individualReviewDiv = document.createElement("div");
+        individualReviewDiv.classList.add("individual-review");
+        individualReviewDiv.appendChild(individualReviewHeader);
+        individualReviewDiv.appendChild(reviewText);
  
-        reviewContainerDiv.appendChild(reviewDiv);
-        reviewContainerDiv.appendChild(document.createElement("br"));
+        reviewContainerDiv.appendChild(individualReviewDiv);
+        reviewContainerDiv.appendChild(document.createElement("hr"));
       }
       moreInfoDiv.appendChild(reviewContainerDiv);
     }
+
+    moreInfoDiv.appendChild(document.createElement("br"));
  
     if (additionalDetails.hasOwnProperty("url")) {
       let listingLink = document.createElement("a");
