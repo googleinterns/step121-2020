@@ -312,10 +312,13 @@ app.get(
   getEvent,
   async (request, response) => {
     const { event } = request;
-    const users = event.users || {};
+    const users = Object.values(event.users || {});
     response.json({
       status: 200,
-      data: Object.values(users),
+      data: {
+        participants: users,
+        center: users.length > 0 ? averageGeolocation(users) : null,
+      },
     });
   }
 );
