@@ -390,14 +390,14 @@ app.get(`${PREFIX_API}/geocode`, async (request, response) => {
   }
 });
 
-function encodeForURL(address) {
-  const formattedAddress = encodeURIComponent(address)
+function encodeForURL(string) {
+  const formattedString = encodeURIComponent(string)
     .replace("!", "%21")
     .replace("*", "%2A")
     .replace("'", "%27")
     .replace("(", "%28")
     .replace(")", "%29");
-  return formattedAddress;
+  return formattedString;
 }
 
 // This number should be kept in sync with the port number in nodemon.json
