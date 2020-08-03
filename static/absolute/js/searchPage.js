@@ -9,7 +9,7 @@ window.onload = function () {
     const nameInput = document.getElementById("name-input");
     const name = nameInput.value;
     const addressInput = document.getElementById("address-input");
-    const address = addressInput.value;
+    let address = addressInput.value;
 
     let lat = null;
     let long = null;
@@ -22,6 +22,11 @@ window.onload = function () {
         } = await getPosition({ enableHighAccuracy: true });
         lat = latitude;
         long = longitude;
+        latlng = lat.toString() + ',' + long.toString();
+        geocodedPosition = await (
+        await fetch(`/api/reverseGeocode?latlng=${latlng}`)
+      ).json();
+    //   address = reverseGeocodedPosition;
       } catch (err) {
         alert("Failed to get position, please enter address.");
         return;
@@ -51,6 +56,7 @@ window.onload = function () {
         body: JSON.stringify({
           name,
           location: [lat, long],
+          address: address,
         }),
       });
       postResponse = await resp.json();
@@ -220,6 +226,7 @@ async function initMap(participantsResponse, restaurantsResponse) {
     });
     // Add restaurant markers.
     const restaurants = restaurantsResponse.data.results;
+    let labelIndex = 1;
     restaurants.forEach((restaurant) => {
       new google.maps.Marker({
         position: {
@@ -227,6 +234,8 @@ async function initMap(participantsResponse, restaurantsResponse) {
           lng: restaurant.geometry.location.lng,
         },
         map: map,
+        label: [labelIndex++].toString(),
+        labelClass: "mapIconLabel", // the CSS class for the label
         title: restaurant.name,
       });
     });
