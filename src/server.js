@@ -163,7 +163,7 @@ app.post(
     const { body, datastoreKey: key, event } = request;
     const [lat, long] = body.location;
     const { name } = body;
-    const address  = body.address;
+    const address = body.address;
     event.users = event.users || {};
     const userInfo = event.users[request.session.userID] || {};
     event.users[request.session.userID] = {
@@ -354,7 +354,7 @@ app.get(`${PREFIX_API}/geocode`, async (request, response) => {
     console.error(err);
     response
       .status(500)
-      .json({ status: 500, error: { type: ERROR_REVERSE_GEOCODING_FAILED } });
+      .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
   }
 });
 
@@ -371,21 +371,18 @@ function encodeAddress(address) {
 app.get(`${PREFIX_API}/reverseGeocode`, async (request, response) => {
   const latlng = request.query.latlng;
 
-  const reverseGeocodeRequest =
-    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=
+  const reverseGeocodeRequest = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=
     ${env.API_KEY_GEOCODE}`;
-    
+
   try {
-    const reverseGeocodeResponse = await (await fetch(reverseGeocodeRequest)).json();
-    const {status} = reverseGeocodeResponse;
+    const reverseGeocodeResponse = await (
+      await fetch(reverseGeocodeRequest)
+    ).json();
+    const { status } = reverseGeocodeResponse;
 
     if (status !== "OK") {
-      console.error(
-        "Geocoding error occured. Api response status: " + status
-      );
-      response
-        .status(500)
-        .json({ status: 500, error: { type: status } });
+      console.error("Geocoding error occured. Api response status: " + status);
+      response.status(500).json({ status: 500, error: { type: status } });
     } else {
       response.json({
         status: 200,
@@ -396,11 +393,9 @@ app.get(`${PREFIX_API}/reverseGeocode`, async (request, response) => {
     console.error(err);
     response
       .status(500)
-      .json({ status: 500, error: { type: ERROR_GEOCODING_FAILED } });
+      .json({ status: 500, error: { type: ERROR_REVERSE_GEOCODING_FAILED } });
   }
 });
-
-
 
 const port = 8080;
 const server = app.listen(port, () =>

@@ -22,18 +22,18 @@ window.onload = function () {
         } = await getPosition({ enableHighAccuracy: true });
         lat = latitude;
         long = longitude;
-        latlng = lat.toString() + ',' + long.toString();
+        latlng = lat.toString() + "," + long.toString();
         const reverseGeocodedPosition = await (
-        await fetch(`/api/reverseGeocode?latlng=${latlng}`)
-      ).json();
-    //   If address is empty, use reverse-geocoded HTML geolocation.
-      address = reverseGeocodedPosition.data;
+          await fetch(`/api/reverseGeocode?latlng=${latlng}`)
+        ).json();
+        //   If address is empty, use reverse-geocoded HTML geolocation.
+        address = reverseGeocodedPosition.data;
       } catch (err) {
         alert("Failed to get position, please enter address.");
         return;
       }
     } else {
-    // Geocode address input for coordinates.
+      // Geocode address input for coordinates.
       const coords = await (
         await fetch(`/api/geocode?address=${address}`)
       ).json();
