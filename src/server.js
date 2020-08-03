@@ -381,7 +381,7 @@ app.get(`${PREFIX_API}/reverseGeocode`, async (request, response) => {
     const { status } = reverseGeocodeResponse;
 
     if (status !== "OK") {
-      console.error("Geocoding error occured. Api response status: " + status);
+      console.error("Reverse Geocoding error occured. Api response status: " + status);
       response.status(500).json({ status: 500, error: { type: status } });
     } else {
       response.json({
