@@ -30,7 +30,6 @@ async function showParticipants() {
     participants
       .map((p) => ({ ...p, location: `${p.lat},${p.long}` }))
       .forEach((participant) => {
-        console.log(participant.address);
         let newDiv = document.createElement("div");
         newDiv.classList.add("participant-card");
 
