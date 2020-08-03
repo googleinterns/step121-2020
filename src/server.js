@@ -275,7 +275,7 @@ app.get(
           console.error("Places API error. Status: " + status);
           response.status(500).json({
             status: 500,
-            error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+            error: { type: status },
           });
         } else {
           response.json({
