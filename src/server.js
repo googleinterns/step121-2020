@@ -262,7 +262,6 @@ app.get(
       const minprice = "0";
       const maxprice = "4";
 
-      // Try for invalid Json Response.
       try {
         const placesApiResponse = await (
           await fetch(
@@ -278,10 +277,14 @@ app.get(
             error: { type: status },
           });
         } else {
+          // Normalize undefined or null to an empty array
           response.json({
             status: 200,
-            data: placesApiResponse,
-            location: { latitude, longitude },
+            data: {
+              places: placesApiResponse.results || [],
+              attributions: placesApiResponse.html_attributions || [],
+              center: { latitude, longitude },
+            },
           });
         }
         // Catch Fetch error
@@ -293,11 +296,13 @@ app.get(
         });
       }
     } else {
-      // Respond with empty object if there is no user location.
-      const placesApiResponse = {};
       response.json({
         status: 200,
-        data: placesApiResponse,
+        data: {
+          places: [],
+          attributions: [],
+          center: null,
+        },
       });
     }
   }
@@ -347,10 +352,13 @@ app.get(
   getEvent,
   async (request, response) => {
     const { event } = request;
-    const users = event.users || {};
+    const users = Object.values(event.users || {});
     response.json({
       status: 200,
-      data: Object.values(users),
+      data: {
+        participants: users,
+        center: users.length > 0 ? averageGeolocation(users) : null,
+      },
     });
   }
 );

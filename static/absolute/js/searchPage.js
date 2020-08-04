@@ -110,49 +110,69 @@ socket.on("refresh", () => {
 
 async function refreshUI() {
   const eventId = getEventId();
-  const participantsResponse = await (
-    await fetch(`/api/${eventId}/participants`)
-  ).json();
-  const restaurantsResponse = await (
-    await fetch(`/api/${eventId}/restaurants`)
-  ).json();
 
-  initMap(participantsResponse, restaurantsResponse);
-  showRestaurants(restaurantsResponse);
+  let failure = false;
+  let map = null;
+  const LACoords = [34.052235, -118.243683];
+
+  fetch(`/api/${eventId}/participants`)
+    .then((response) => response.json())
+    .then(({ status, data }) => {
+      if (status != 200 || failure) {
+        failure = true;
+        return;
+      }
+      const { participants, center } = data;
+      if (participants.length == 0) {
+        if (center !== null)
+          console.error(`Expected center to be null, it was: ${center}`);
+        // If there's no participants, center the map around LA
+        map = centerMap(map, ...LACoords);
+      } else {
+        const { latitude, longitude } = center;
+        map = centerMap(map, latitude, longitude);
+        addParticipants(map, participants);
+      }
+    });
+
+  fetch(`/api/${eventId}/restaurants`)
+    .then((response) => response.json())
+    .then(async ({ status, data }) => {
+      if (status != 200 || failure) {
+        failure = true;
+        return;
+      }
+      const { places, center } = data;
+      if (places.length === 0) {
+        if (center !== null)
+          console.error(`Expected center to be null, it was: ${center}`);
+        map = centerMap(map, ...LACoords);
+        showRestaurants(places);
+      } else {
+        const { latitude, longitude } = center;
+        map = centerMap(map, latitude, longitude);
+        const domNodes = await showRestaurants(places);
+        addRestaurants(map, places, domNodes);
+      }
+    });
 }
 
 /**
  * Creates HTML elements for the restaurant details and adds it
  * to a container in searchResults.html.
  */
-async function showRestaurants(restaurantResponse) {
+async function showRestaurants(restaurants) {
   const restaurantContainer = document.getElementById("restaurant-container");
   restaurantContainer.innerHTML = "";
 
-  if (restaurantResponse.status !== 200) {
-    let restaurantErrorMessage = document.createElement("p");
-    restaurantErrorMessage.classList.add("search-instructions");
-    let messageText =
-      restaurantResponse.error.type === "ZERO_RESULTS"
-        ? "We could not find any restaurants. Check to make sure you are using the correct address."
-        : "Something went wrong when searching for restaurants.";
-    restaurantErrorMessage.appendChild(document.createTextNode(messageText));
-
-    restaurantContainer.appendChild(restaurantErrorMessage);
-    return;
-  }
-
-  const allRestaurants = restaurantResponse.data;
-
-  if (!allRestaurants.hasOwnProperty("results")) {
-    let instructions = document.createElement("p");
+  if (restaurants.length === 0) {
+    const instructions = document.createElement("p");
     instructions.classList.add("search-instructions");
     instructions.appendChild(
       document.createTextNode(
         "No one has added their information yet! Fill out the form above to start seeing some results."
       )
     );
-
     restaurantContainer.appendChild(instructions);
     return;
   }
@@ -162,37 +182,39 @@ async function showRestaurants(restaurantResponse) {
 
   //Create a new div for every restaurant returned by the Places Library:
   let restaurantIndex = 1;
-  for (restaurant of allRestaurants.results) {
+  const domNodes = [];
+  //This will be used to create a new div for every restaurant returned by the Places Library:
+  for (const restaurant of restaurants) {
     //Get additional details for every restaurant using that restaurant's place id.
-    let placeDetailsResponse = await (
+    const placeDetailsResponse = await (
       await fetch(
         `/api/placedetails?fields=${fields}&id=${restaurant.place_id}`
       )
     ).json();
 
-    let additionalDetails =
+    const additionalDetails =
       placeDetailsResponse.status === 200
         ? placeDetailsResponse.data.result
         : {};
 
-    //Create a restaurant card to hold information about each restaurant.
-    let infoDiv = document.createElement("div");
+    //Create a section to hold information about each restaurant.
+    const infoDiv = document.createElement("div");
     infoDiv.classList.add("info-div");
 
     //Create a section to hold the image.
     try {
-      let imageDiv = document.createElement("div");
+      const imageDiv = document.createElement("div");
 
-      let width = "150"; //px
-      let placePhotosRequest =
+      const width = "150"; //px
+      const placePhotosRequest =
         "https://maps.googleapis.com/maps/api/place/photo?photoreference=" +
         restaurant.photos[0].photo_reference +
         "&maxwidth=" +
         width +
         "&key=" +
-        "APIKey";
+        "AIzaSyAM2CwINrDFcPP4uoEKZ1iVlPgzUryWgfc";
 
-      let image = document.createElement("img");
+      const image = document.createElement("img");
       image.src = placePhotosRequest;
       image.width = width;
 
@@ -203,11 +225,11 @@ async function showRestaurants(restaurantResponse) {
     }
 
     // Add information to the left side of the restaurant card. This contains name and atmospheric information.
-    let leftDiv = document.createElement("div");
+    const leftDiv = document.createElement("div");
 
-    let name = document.createElement("h2");
+    const name = document.createElement("h2");
     name.classList.add("restaurant-name");
-    let restaurantName = restaurant.hasOwnProperty("name")
+    const restaurantName = restaurant.hasOwnProperty("name")
       ? restaurant.name
       : "";
     name.appendChild(
@@ -216,7 +238,7 @@ async function showRestaurants(restaurantResponse) {
     leftDiv.appendChild(name);
 
     if (restaurant.hasOwnProperty("rating")) {
-      let rating = document.createElement("p");
+      const rating = document.createElement("p");
       rating.classList.add("restaurant-info");
       rating.appendChild(
         document.createTextNode("Rating: " + restaurant.rating)
@@ -225,7 +247,7 @@ async function showRestaurants(restaurantResponse) {
     }
 
     if (restaurant.hasOwnProperty("price_level")) {
-      let priceLevel = document.createElement("p");
+      const priceLevel = document.createElement("p");
       priceLevel.classList.add("restaurant-info");
       priceLevel.appendChild(
         document.createTextNode("$".repeat(restaurant.price_level))
@@ -236,17 +258,17 @@ async function showRestaurants(restaurantResponse) {
     infoDiv.appendChild(leftDiv);
 
     //Add information to the left side of the restaurant card. This contains basic and contact information.
-    let rightDiv = document.createElement("div");
+    const rightDiv = document.createElement("div");
 
     if (restaurant.hasOwnProperty("vicinity")) {
-      let address = document.createElement("p");
+      const address = document.createElement("p");
       address.classList.add("restaurant-basic-info");
       address.appendChild(document.createTextNode(restaurant.vicinity));
       rightDiv.appendChild(address);
     }
 
     if (additionalDetails.hasOwnProperty("formatted_phone_number")) {
-      let phoneNumber = document.createElement("p");
+      const phoneNumber = document.createElement("p");
       phoneNumber.classList.add("restaurant-basic-info");
       phoneNumber.appendChild(
         document.createTextNode(additionalDetails.formatted_phone_number)
@@ -255,10 +277,10 @@ async function showRestaurants(restaurantResponse) {
     }
 
     if (additionalDetails.hasOwnProperty("website")) {
-      let website = document.createElement("p");
+      const website = document.createElement("p");
       website.classList.add("restaurant-basic-info");
 
-      let link = document.createElement("a");
+      const link = document.createElement("a");
       link.appendChild(document.createTextNode("Website"));
       link.href = additionalDetails.website;
 
@@ -267,9 +289,9 @@ async function showRestaurants(restaurantResponse) {
     }
 
     if (restaurant.hasOwnProperty("opening_hours")) {
-      let openingHours = document.createElement("p");
+      const openingHours = document.createElement("p");
       openingHours.classList.add("restaurant-basic-info");
-      let openNow = Object.values(restaurant.opening_hours)
+      const openNow = Object.values(restaurant.opening_hours)
         ? "Open Now"
         : "Closed Now";
 
@@ -280,41 +302,41 @@ async function showRestaurants(restaurantResponse) {
     infoDiv.appendChild(rightDiv);
 
     //Show reviews and a link to restaurant listing on Google when 'show more' button is clicked.
-    let moreInfoDiv = document.createElement("div");
+    const moreInfoDiv = document.createElement("div");
     moreInfoDiv.classList.add("restaurant-info");
 
     //Add review section to the card.
     if (additionalDetails.hasOwnProperty("reviews")) {
-      let reviewContainer = document.createElement("div");
+      const reviewContainer = document.createElement("div");
 
       //Create header for review section.
-      let reviewDivHeader = document.createElement("h3");
+      const reviewDivHeader = document.createElement("h3");
       reviewDivHeader.appendChild(document.createTextNode("Reviews"));
       reviewDivHeader.classList.add("review-header");
       reviewContainer.appendChild(reviewDivHeader);
 
       reviewContainer.appendChild(document.createElement("hr"));
 
-      let reviews = additionalDetails.reviews;
+      const reviews = additionalDetails.reviews;
       for (i = 0; i < reviews.length && i < 2; i++) {
         //Show only two results for simplicity.
-        let reviewerName = reviews[i].hasOwnProperty("author_name")
+        const reviewerName = reviews[i].hasOwnProperty("author_name")
           ? reviews[i].author_name
           : "";
-        let reviewTime = reviews[i].hasOwnProperty("relative_time_description")
+        const reviewTime = reviews[i].hasOwnProperty("relative_time_description")
           ? reviews[i].relative_time_description
           : "";
 
-        let individualReviewHeader = document.createElement("p");
+        const individualReviewHeader = document.createElement("p");
         individualReviewHeader.appendChild(
           document.createTextNode(reviewerName + " - " + reviewTime)
         );
-        let reviewText = document.createElement("p");
+        const reviewText = document.createElement("p");
         reviewText.appendChild(
           document.createTextNode('"' + reviews[i].text + '"')
         );
 
-        let individualReviewDiv = document.createElement("div");
+        const individualReviewDiv = document.createElement("div");
         individualReviewDiv.classList.add("individual-review");
         individualReviewDiv.appendChild(individualReviewHeader);
         individualReviewDiv.appendChild(reviewText);
@@ -327,7 +349,7 @@ async function showRestaurants(restaurantResponse) {
     }
 
     if (additionalDetails.hasOwnProperty("url")) {
-      let listingLink = document.createElement("a");
+      const listingLink = document.createElement("a");
       listingLink.appendChild(document.createTextNode("See Listing on Google"));
       listingLink.href = additionalDetails.url;
 
@@ -337,7 +359,7 @@ async function showRestaurants(restaurantResponse) {
     moreInfoDiv.style.display = "none";
 
     //Create a link to show and hide the moreInfoDiv (reviews and restaurant listing).
-    let showMoreLink = document.createElement("p");
+    const showMoreLink = document.createElement("p");
     showMoreLink.classList.add("show-more-link", "restaurant-info");
     showMoreLink.innerHTML = "Show More &#8595;"; //With down arrow
 
@@ -352,71 +374,67 @@ async function showRestaurants(restaurantResponse) {
     };
 
     //Add the two info sections and show more/show less button to a restaurant card div.
-    let restaurantCardDiv = document.createElement("div");
+    const restaurantCardDiv = document.createElement("div");
     restaurantCardDiv.classList.add("restaurant-card");
 
     restaurantCardDiv.appendChild(infoDiv);
     restaurantCardDiv.appendChild(moreInfoDiv);
     restaurantCardDiv.appendChild(showMoreLink);
-
+    
+    domNodes.push(restaurantCardDiv);
     restaurantContainer.appendChild(restaurantCardDiv);
     restaurantIndex++;
   }
+  return domNodes;
 }
 
-// Initializes a Map.
-async function initMap(participantsResponse, restaurantsResponse) {
-  const eventId = getEventId();
-
-  // Checks if restaurant API responses is successful and restaurant data is not empty.
-  // Restuarant data could be empty in the case where there are no active participants in the database.
-  if (
-    restaurantsResponse.status === 200 &&
-    restaurantsResponse.data.hasOwnProperty("results")
-  ) {
-    const map = new google.maps.Map(document.getElementById("map"), {
-      // Centers Map around average geolocation when there is at least one participant.
-      center: {
-        lat: restaurantsResponse.location.latitude,
-        lng: restaurantsResponse.location.longitude,
+function addParticipants(map, participants) {
+  const personIcon = "../images/personIcon.png";
+  for (const participant of participants) {
+    new google.maps.Marker({
+      position: {
+        lat: participant.lat,
+        lng: participant.long,
       },
-      zoom: 13,
-    });
-    // Add restaurant markers.
-    const restaurants = restaurantsResponse.data.results;
-    restaurants.forEach((restaurant) => {
-      new google.maps.Marker({
-        position: {
-          lat: restaurant.geometry.location.lat,
-          lng: restaurant.geometry.location.lng,
-        },
-        map: map,
-        title: restaurant.name,
-      });
-    });
-    // Add participants markers.
-    const participants = participantsResponse.data;
-    const personIcon = "../images/personIcon.png";
-    participants.forEach((participant) => {
-      new google.maps.Marker({
-        position: {
-          lat: participant.lat,
-          lng: participant.long,
-        },
-        map: map,
-        title: participant.name,
-        icon: personIcon,
-        animation: google.maps.Animation.DROP,
-      });
-    });
-  } else {
-    //Default map is centered around Los Angeles.
-    const map = new google.maps.Map(document.getElementById("map"), {
-      center: {
-        lat: 34.052235,
-        lng: -118.243683,
-      },
-      zoom: 13,
+      map,
+      title: participant.name,
+      icon: personIcon,
+      animation: google.maps.Animation.DROP,
     });
   }
+}
+
+function addRestaurants(map, restaurants, restaurantCards) {
+  for (let i = 0; i < restaurants.length; i++) {
+    const restaurant = restaurants[i];
+    const card = restaurantCards[i];
+    const marker = new google.maps.Marker({
+      position: {
+        lat: restaurant.geometry.location.lat,
+        lng: restaurant.geometry.location.lng,
+      },
+      map: map,
+      title: restaurant.name,
+    });
+    marker.addListener("click", () => {
+      card.scrollIntoView({ behavior: "smooth", alignToTop: true });
+      card.classList.add("scroll-to");
+    });
+  }
+}
+
+function centerMap(map, lat, lng) {
+  // Don't need to worry about race conditions b/c JS is single threaded
+  if (map === null) {
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: {
+        lat,
+        lng,
+      },
+      zoom: 13,
+    });
+  } else {
+    map.setCenter(new google.maps.LatLng(lat, lng));
+  }
+  return map;
 }
