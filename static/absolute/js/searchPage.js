@@ -117,31 +117,62 @@ socket.on("refresh", () => {
 
 async function refreshUI() {
   const eventId = getEventId();
-  const participantsResponse = await (
-    await fetch(`/api/${eventId}/participants`)
-  ).json();
-  const restaurantsResponse = await (
-    await fetch(`/api/${eventId}/restaurants`)
-  ).json();
 
-  initMap(participantsResponse, restaurantsResponse);
-  showRestaurants(restaurantsResponse);
+  let failure = false;
+  let map = null;
+  const LACoords = [34.052235, -118.243683];
+
+  fetch(`/api/${eventId}/participants`)
+    .then((response) => response.json())
+    .then(({ status, data }) => {
+      if (status != 200 || failure) {
+        failure = true;
+        return;
+      }
+      const { participants, center } = data;
+      if (participants.length == 0) {
+        if (center !== null)
+          console.error(`Expected center to be null, it was: ${center}`);
+        // If there's no participants, center the map around LA
+        map = centerMap(map, ...LACoords);
+      } else {
+        const { latitude, longitude } = center;
+        map = centerMap(map, latitude, longitude);
+        addParticipants(map, participants);
+      }
+    });
+
+  fetch(`/api/${eventId}/restaurants`)
+    .then((response) => response.json())
+    .then(({ status, data }) => {
+      if (status != 200 || failure) {
+        failure = true;
+        return;
+      }
+      const { places, center } = data;
+      if (places.length === 0) {
+        if (center !== null)
+          console.error(`Expected center to be null, it was: ${center}`);
+        map = centerMap(map, ...LACoords);
+      } else {
+        const { latitude, longitude } = center;
+        map = centerMap(map, latitude, longitude);
+        const domNodes = showRestaurants(places);
+        addRestaurants(map, places, domNodes);
+      }
+    });
 }
 
 /**
  * Creates HTML elements for the restaurant details and adds it
  * to a container in searchResults.html.
- *
- * For now, this function deals with hard-coded data, but this
- * can be used as a template for when we get data the Places Library results.
  */
-function showRestaurants(restaurantsResponse) {
-  const allRestaurants = restaurantsResponse.data;
+function showRestaurants(restaurants) {
   const restaurantContainer = document.getElementById("restaurant-container");
 
   restaurantContainer.innerHTML = "";
 
-  if (!allRestaurants.hasOwnProperty("results")) {
+  if (restaurants.length === 0) {
     let instructions = document.createElement("p");
     instructions.classList.add("search-instructions");
     instructions.appendChild(
@@ -149,13 +180,13 @@ function showRestaurants(restaurantsResponse) {
         "No one has added their information yet! Fill out the form above to start seeing some results."
       )
     );
-
     restaurantContainer.appendChild(instructions);
     return;
   }
 
+  const domNodes = [];
   //This will be used to create a new div for every restaurant returned by the Places Library:
-  allRestaurants.results.forEach((restaurant) => {
+  for (const restaurant of restaurants) {
     let restaurantDiv = document.createElement("div");
     restaurantDiv.classList.add("restaurant-card");
 
@@ -203,66 +234,57 @@ function showRestaurants(restaurantsResponse) {
     rightDiv.appendChild(openingHours);
 
     restaurantDiv.appendChild(rightDiv);
+    domNodes.push(restaurantDiv);
     restaurantContainer.appendChild(restaurantDiv);
-  });
+  }
+  return domNodes;
 }
 
-// Initializes a Map.
-async function initMap(participantsResponse, restaurantsResponse) {
-  const eventId = getEventId();
-
-  // Checks if restaurant API responses is successful and restaurant data is not empty.
-  // Restuarant data could be empty in the case where there are no active participants in the database.
-  if (
-    restaurantsResponse.status === 200 &&
-    restaurantsResponse.data.hasOwnProperty("results")
-  ) {
-    const map = new google.maps.Map(document.getElementById("map"), {
-      // Centers Map around average geolocation when there is at least one participant.
-      center: {
-        lat: restaurantsResponse.location.latitude,
-        lng: restaurantsResponse.location.longitude,
+function addParticipants(map, participants) {
+  const personIcon = "../images/personIcon.png";
+  for (const participant of participants) {
+    new google.maps.Marker({
+      position: {
+        lat: participant.lat,
+        lng: participant.long,
       },
-      zoom: 13,
-    });
-    // Add restaurant markers.
-    const restaurants = restaurantsResponse.data.results;
-    let labelIndex = 1;
-    restaurants.forEach((restaurant) => {
-      new google.maps.Marker({
-        position: {
-          lat: restaurant.geometry.location.lat,
-          lng: restaurant.geometry.location.lng,
-        },
-        map: map,
-        label: [labelIndex++].toString(),
-        labelClass: "mapIconLabel", // the CSS class for the label
-        title: restaurant.name,
-      });
-    });
-    // Add participants markers.
-    const participants = participantsResponse.data;
-    const personIcon = "../images/personIcon.png";
-    participants.forEach((participant) => {
-      new google.maps.Marker({
-        position: {
-          lat: participant.lat,
-          lng: participant.long,
-        },
-        map: map,
-        title: participant.name,
-        icon: personIcon,
-        animation: google.maps.Animation.DROP,
-      });
-    });
-  } else {
-    //Default map is centered around Los Angeles.
-    const map = new google.maps.Map(document.getElementById("map"), {
-      center: {
-        lat: 34.052235,
-        lng: -118.243683,
-      },
-      zoom: 13,
+      map,
+      title: participant.name,
+      icon: personIcon,
+      animation: google.maps.Animation.DROP,
     });
   }
+}
+function addRestaurants(map, restaurants, restaurantCards) {
+  for (let i = 0; i < restaurants.length; i++) {
+    const restaurant = restaurants[i];
+    const card = restaurantCards[i];
+    const marker = new google.maps.Marker({
+      position: {
+        lat: restaurant.geometry.location.lat,
+        lng: restaurant.geometry.location.lng,
+      },
+      map: map,
+      title: restaurant.name,
+    });
+    marker.addListener("click", () => {
+      card.scrollIntoView({ behavior: "smooth", alignToTop: true });
+    });
+  }
+}
+
+function centerMap(map, lat, lng) {
+  // Don't need to worry about race conditions b/c JS is single threaded
+  if (map === null) {
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: {
+        lat,
+        lng,
+      },
+      zoom: 13,
+    });
+  } else {
+    map.setCenter(new google.maps.LatLng(lat, lng));
+  }
+  return map;
 }

@@ -269,7 +269,6 @@ app.get(
       const minprice = "0";
       const maxprice = "4";
 
-      // Try for invalid Json Response.
       try {
         const placesApiResponse = await (
           await fetch(
@@ -285,10 +284,14 @@ app.get(
             error: { type: ERROR_BAD_PLACES_API_INTERACTION },
           });
         } else {
+          // Normalize undefined or null to an empty array
           response.json({
             status: 200,
-            data: placesApiResponse,
-            location: { latitude, longitude },
+            data: {
+              places: placesApiResponse.results || [],
+              attributions: placesApiResponse.html_attributions || [],
+              center: { latitude, longitude },
+            },
           });
         }
         // Catch Fetch error
@@ -300,11 +303,13 @@ app.get(
         });
       }
     } else {
-      // Respond with empty object if there is no user location.
-      const placesApiResponse = {};
       response.json({
         status: 200,
-        data: placesApiResponse,
+        data: {
+          places: [],
+          attributions: [],
+          center: null,
+        },
       });
     }
   }
@@ -315,10 +320,13 @@ app.get(
   getEvent,
   async (request, response) => {
     const { event } = request;
-    const users = event.users || {};
+    const users = Object.values(event.users || {});
     response.json({
       status: 200,
-      data: Object.values(users),
+      data: {
+        participants: users,
+        center: users.length > 0 ? averageGeolocation(users) : null,
+      },
     });
   }
 );
@@ -381,7 +389,9 @@ app.get(`${PREFIX_API}/reverseGeocode`, async (request, response) => {
     const { status } = reverseGeocodeResponse;
 
     if (status !== "OK") {
-      console.error("Reverse Geocoding error occured. Api response status: " + status);
+      console.error(
+        "Reverse Geocoding error occured. Api response status: " + status
+      );
       response.status(500).json({ status: 500, error: { type: status } });
     } else {
       response.json({
