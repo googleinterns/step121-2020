@@ -266,6 +266,12 @@ function addRestaurants(map, restaurants, restaurantCards) {
       },
       map: map,
       title: restaurant.name,
+      label: {
+        text: [i + 1].toString(),
+        color: "white",
+        fontWeight: "22px",
+        fontSize: "18px",
+      },
     });
     marker.addListener("click", () => {
       card.scrollIntoView({ behavior: "smooth", alignToTop: true });
