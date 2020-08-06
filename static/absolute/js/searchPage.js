@@ -153,6 +153,7 @@ async function refreshUI() {
         if (center !== null)
           console.error(`Expected center to be null, it was: ${center}`);
         map = centerMap(map, ...LACoords);
+        showRestaurants(places);
       } else {
         const { latitude, longitude } = center;
         map = centerMap(map, latitude, longitude);
@@ -168,11 +169,10 @@ async function refreshUI() {
  */
 function showRestaurants(restaurants) {
   const restaurantContainer = document.getElementById("restaurant-container");
-
   restaurantContainer.innerHTML = "";
 
   if (restaurants.length === 0) {
-    let instructions = document.createElement("p");
+    const instructions = document.createElement("p");
     instructions.classList.add("search-instructions");
     instructions.appendChild(
       document.createTextNode(
@@ -183,58 +183,214 @@ function showRestaurants(restaurants) {
     return;
   }
 
+  //Create a new div for every restaurant returned by the Places Library:
+  let restaurantIndex = 1;
   const domNodes = [];
   //This will be used to create a new div for every restaurant returned by the Places Library:
   for (const restaurant of restaurants) {
-    let restaurantDiv = document.createElement("div");
-    restaurantDiv.classList.add("restaurant-card");
+    //Create a section to hold information about each restaurant.
+    const infoDiv = document.createElement("div");
+    infoDiv.classList.add("info-div");
 
-    // Add information to the left side of the restaurant card. This contains name and atmospheric information
-    let leftDiv = document.createElement("div");
+    //Create a section to hold the image.
+    try {
+      const imageDiv = document.createElement("div");
 
-    let name = document.createElement("h2");
+      const width = "150"; //px
+      const placePhotosRequest =
+        "https://maps.googleapis.com/maps/api/place/photo?photoreference=" +
+        restaurant.photos[0].photo_reference +
+        "&maxwidth=" +
+        width +
+        "&key=" +
+        "APIKey";
+
+      const image = document.createElement("img");
+      image.src = placePhotosRequest;
+      image.width = width;
+
+      imageDiv.appendChild(image);
+      infoDiv.appendChild(imageDiv);
+    } catch (err) {
+      console.log("Restaurant image could not be retrieved. Error: " + err);
+    }
+
+    // Add information to the left side of the restaurant card. This contains name and atmospheric information.
+    const leftDiv = document.createElement("div");
+
+    const name = document.createElement("h2");
     name.classList.add("restaurant-name");
-    let restaurantName = restaurant.hasOwnProperty("name")
+    const restaurantName = restaurant.hasOwnProperty("name")
       ? restaurant.name
       : "";
-    name.appendChild(document.createTextNode(restaurantName));
+    name.appendChild(
+      document.createTextNode(restaurantIndex + ". " + restaurantName)
+    );
     leftDiv.appendChild(name);
 
-    let rating = document.createElement("p");
-    rating.classList.add("restaurant-info");
-    let restaurantRating = restaurant.hasOwnProperty("rating")
-      ? restaurant.rating
-      : "Unknown";
-    rating.appendChild(document.createTextNode("Rating: " + restaurantRating));
-    leftDiv.appendChild(rating);
-
-    restaurantDiv.appendChild(leftDiv);
-
-    //Add information to the left side of the restaurant card. This contains contact information.
-    let rightDiv = document.createElement("div");
-
-    let address = document.createElement("p");
-    address.classList.add("restaurant-basic-info");
-    let restaurantVicinity = restaurant.hasOwnProperty("vicinity")
-      ? restaurant.vicinity
-      : "";
-    address.appendChild(document.createTextNode(restaurantVicinity));
-    rightDiv.appendChild(address);
-
-    let openingHours = document.createElement("p");
-    openingHours.classList.add("restaurant-basic-info");
-    let openNow = "";
-    if (restaurant.hasOwnProperty("opening_hours")) {
-      openNow = Object.values(restaurant.opening_hours)
-        ? "Open Now"
-        : "Closed now";
+    if (restaurant.hasOwnProperty("rating")) {
+      const rating = document.createElement("p");
+      rating.classList.add("restaurant-info");
+      rating.appendChild(
+        document.createTextNode("Rating: " + restaurant.rating)
+      );
+      leftDiv.appendChild(rating);
     }
-    openingHours.appendChild(document.createTextNode(openNow));
-    rightDiv.appendChild(openingHours);
 
-    restaurantDiv.appendChild(rightDiv);
-    domNodes.push(restaurantDiv);
-    restaurantContainer.appendChild(restaurantDiv);
+    if (restaurant.hasOwnProperty("price_level")) {
+      const priceLevel = document.createElement("p");
+      priceLevel.classList.add("restaurant-info");
+      priceLevel.appendChild(
+        document.createTextNode("$".repeat(restaurant.price_level))
+      );
+      leftDiv.appendChild(priceLevel);
+    }
+
+    infoDiv.appendChild(leftDiv);
+
+    //Add information to the left side of the restaurant card. This contains basic and contact information.
+    const rightDiv = document.createElement("div");
+
+    if (restaurant.hasOwnProperty("vicinity")) {
+      const address = document.createElement("p");
+      address.classList.add("restaurant-basic-info");
+      address.appendChild(document.createTextNode(restaurant.vicinity));
+      rightDiv.appendChild(address);
+    }
+
+    if (
+      restaurant.hasOwnProperty("additional_details") &&
+      restaurant.additional_details.hasOwnProperty("formatted_phone_number")
+    ) {
+      const phoneNumber = document.createElement("p");
+      phoneNumber.classList.add("restaurant-basic-info");
+      phoneNumber.appendChild(
+        document.createTextNode(
+          restaurant.additional_details.formatted_phone_number
+        )
+      );
+      rightDiv.appendChild(phoneNumber);
+    }
+
+    if (
+      restaurant.hasOwnProperty("additional_details") &&
+      restaurant.additional_details.hasOwnProperty("website")
+    ) {
+      const website = document.createElement("p");
+      website.classList.add("restaurant-basic-info");
+
+      const link = document.createElement("a");
+      link.appendChild(document.createTextNode("Website"));
+      link.href = restaurant.additional_details.website;
+
+      website.appendChild(link);
+      rightDiv.appendChild(website);
+    }
+
+    if (restaurant.hasOwnProperty("opening_hours")) {
+      const openingHours = document.createElement("p");
+      openingHours.classList.add("restaurant-basic-info");
+      const openNow = Object.values(restaurant.opening_hours)
+        ? "Open Now"
+        : "Closed Now";
+
+      openingHours.appendChild(document.createTextNode(openNow));
+      rightDiv.appendChild(openingHours);
+    }
+
+    infoDiv.appendChild(rightDiv);
+
+    //Show reviews and a link to restaurant listing on Google when 'show more' button is clicked.
+    const moreInfoDiv = document.createElement("div");
+    moreInfoDiv.classList.add("restaurant-info");
+
+    //Add review section to the card.
+    if (
+      restaurant.hasOwnProperty("additional_details") &&
+      restaurant.additional_details.hasOwnProperty("reviews")
+    ) {
+      const reviewContainer = document.createElement("div");
+
+      //Create header for review section.
+      const reviewDivHeader = document.createElement("h3");
+      reviewDivHeader.appendChild(document.createTextNode("Reviews"));
+      reviewDivHeader.classList.add("review-header");
+      reviewContainer.appendChild(reviewDivHeader);
+
+      reviewContainer.appendChild(document.createElement("hr"));
+
+      const reviews = restaurant.additional_details.reviews;
+      for (i = 0; i < reviews.length && i < 2; i++) {
+        //Show only two results for simplicity.
+        const reviewerName = reviews[i].hasOwnProperty("author_name")
+          ? reviews[i].author_name
+          : "";
+        const reviewTime = reviews[i].hasOwnProperty(
+          "relative_time_description"
+        )
+          ? reviews[i].relative_time_description
+          : "";
+
+        const individualReviewHeader = document.createElement("p");
+        individualReviewHeader.appendChild(
+          document.createTextNode(reviewerName + " - " + reviewTime)
+        );
+        const reviewText = document.createElement("p");
+        reviewText.appendChild(
+          document.createTextNode('"' + reviews[i].text + '"')
+        );
+
+        const individualReviewDiv = document.createElement("div");
+        individualReviewDiv.classList.add("individual-review");
+        individualReviewDiv.appendChild(individualReviewHeader);
+        individualReviewDiv.appendChild(reviewText);
+
+        reviewContainer.appendChild(individualReviewDiv);
+        reviewContainer.appendChild(document.createElement("hr"));
+      }
+      moreInfoDiv.appendChild(reviewContainer);
+      moreInfoDiv.appendChild(document.createElement("br"));
+    }
+
+    if (
+      restaurant.hasOwnProperty("additional_details") &&
+      restaurant.additional_details.hasOwnProperty("url")
+    ) {
+      const listingLink = document.createElement("a");
+      listingLink.appendChild(document.createTextNode("See Listing on Google"));
+      listingLink.href = restaurant.additional_details.url;
+
+      moreInfoDiv.appendChild(listingLink);
+    }
+
+    moreInfoDiv.style.display = "none";
+
+    //Create a link to show and hide the moreInfoDiv (reviews and restaurant listing).
+    const showMoreLink = document.createElement("p");
+    showMoreLink.classList.add("show-more-link", "restaurant-info");
+    showMoreLink.innerHTML = "Show More &#8595;"; //With down arrow
+
+    showMoreLink.onclick = function () {
+      if (moreInfoDiv.style.display === "inline") {
+        moreInfoDiv.style.display = "none";
+        showMoreLink.innerHTML = "Show More &#8595;"; //With down arrow
+      } else {
+        moreInfoDiv.style.display = "inline";
+        showMoreLink.innerHTML = "Show Less &#8593;"; //With up arrow
+      }
+    };
+
+    //Add the two info sections and show more/show less button to a restaurant card div.
+    const restaurantCardDiv = document.createElement("div");
+    restaurantCardDiv.classList.add("restaurant-card");
+
+    restaurantCardDiv.appendChild(infoDiv);
+    restaurantCardDiv.appendChild(moreInfoDiv);
+    restaurantCardDiv.appendChild(showMoreLink);
+
+    domNodes.push(restaurantCardDiv);
+    restaurantContainer.appendChild(restaurantCardDiv);
+    restaurantIndex++;
   }
   return domNodes;
 }
@@ -269,6 +425,7 @@ function addRestaurants(map, restaurants, restaurantCards) {
     });
     marker.addListener("click", () => {
       card.scrollIntoView({ behavior: "smooth", alignToTop: true });
+      card.classList.add("scroll-to");
     });
   }
 }
