@@ -26,25 +26,24 @@ async function showParticipants() {
     );
     participantContainer.innerHTML = "";
 
-    const participants = response.data;
-    participants
-      .map((p) => ({ ...p, location: `${p.lat},${p.long}` }))
-      .forEach((participant) => {
-        let newDiv = document.createElement("div");
-        newDiv.classList.add("participant-card");
+    const participants = response.data.participants;
 
-        let name = document.createElement("h2");
-        name.classList.add("participant-name");
-        name.appendChild(document.createTextNode(participant.name));
-        newDiv.appendChild(name);
+    participants.forEach((participant) => {
+      let newDiv = document.createElement("div");
+      newDiv.classList.add("participant-card");
 
-        let location = document.createElement("p");
-        location.classList.add("participant-info");
-        location.appendChild(document.createTextNode(participant.location));
-        newDiv.appendChild(location);
+      let name = document.createElement("h2");
+      name.classList.add("participant-name");
+      name.appendChild(document.createTextNode(participant.name));
+      newDiv.appendChild(name);
 
-        participantContainer.appendChild(newDiv);
-      });
+      let address = document.createElement("p");
+      address.classList.add("participant-info");
+      address.appendChild(document.createTextNode(participant.address));
+      newDiv.appendChild(address);
+
+      participantContainer.appendChild(newDiv);
+    });
   }
 }
 

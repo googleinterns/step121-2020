@@ -20,7 +20,9 @@ const ERROR_BAD_DB_INTERACTION = "BAD_DATABASE";
 const ERROR_INVALID_EVENT_ID = "INVALID_EVENT_ID";
 const ERROR_BAD_UUID = "BAD_UUID";
 const ERROR_GEOCODING_FAILED = "GEOCODING_FAILED";
+const ERROR_REVERSE_GEOCODING_FAILED = "REVERSE_GEOCODING_FAILED";
 const ERROR_BAD_PLACES_API_INTERACTION = "BAD_PLACES_API";
+const ERROR_PLACE_DETAILS_FAILED = "PLACE_DETAILS_FAILED";
 
 app.use(express.static("static/absolute"));
 
@@ -162,6 +164,7 @@ app.post(
     const { body, datastoreKey: key, event } = request;
     const [lat, long] = body.location;
     const { name, address } = body;
+
     event.users = event.users || {};
     const userInfo = event.users[request.session.userID] || {};
     event.users[request.session.userID] = {
@@ -279,7 +282,7 @@ app.get(
           console.error("Places API error. Status: " + status);
           response.status(500).json({
             status: 500,
-            error: { type: ERROR_BAD_PLACES_API_INTERACTION },
+            error: { type: status },
           });
         } else {
           // Normalize undefined or null to an empty array
@@ -313,6 +316,45 @@ app.get(
   }
 );
 
+app.get(`${PREFIX_API}/placedetails`, async (request, response) => {
+  const placeId = encodeForURL(request.query.id);
+  const fields = encodeForURL(request.query.fields);
+
+  const placeDetailsRequest =
+    "https://maps.googleapis.com/maps/api/place/details/json?place_id=" +
+    placeId +
+    "&fields=" +
+    fields +
+    "&key=" +
+    env.API_KEY_PLACES;
+
+  try {
+    const placeDetailsResponse = await (
+      await fetch(placeDetailsRequest)
+    ).json();
+    const responseStatus = placeDetailsResponse.status;
+
+    if (responseStatus !== "OK") {
+      console.error(
+        "Place Details error occured. Api response status: " + responseStatus
+      );
+      response
+        .status(500)
+        .json({ status: 500, error: { type: responseStatus } });
+    } else {
+      response.json({
+        status: 200,
+        data: placeDetailsResponse,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    response
+      .status(500)
+      .json({ status: 500, error: { type: ERROR_PLACE_DETAILS_FAILED } });
+  }
+});
+
 app.get(
   `${PREFIX_API}/:${URL_PARAM_EVENT_ID}/participants`,
   getEvent,
@@ -330,7 +372,7 @@ app.get(
 );
 
 app.get(`${PREFIX_API}/geocode`, async (request, response) => {
-  const address = encodeAddress(request.query.address);
+  const address = encodeForURL(request.query.address);
 
   const geocodeRequest =
     "https://maps.googleapis.com/maps/api/geocode/json?address=" +
@@ -364,17 +406,47 @@ app.get(`${PREFIX_API}/geocode`, async (request, response) => {
   }
 });
 
-function encodeAddress(address) {
-  const formattedAddress = encodeURIComponent(address)
+function encodeForURL(string) {
+  const formattedString = encodeURIComponent(string)
     .replace("!", "%21")
     .replace("*", "%2A")
     .replace("'", "%27")
     .replace("(", "%28")
     .replace(")", "%29");
-  return formattedAddress;
+  return formattedString;
 }
 
-// This number should be kept in sync with the port number in nodemon.json
+app.get(`${PREFIX_API}/reverseGeocode`, async (request, response) => {
+  const latlng = request.query.latlng;
+
+  const reverseGeocodeRequest = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=
+    ${env.API_KEY_GEOCODE}`;
+
+  try {
+    const reverseGeocodeResponse = await (
+      await fetch(reverseGeocodeRequest)
+    ).json();
+    const { status } = reverseGeocodeResponse;
+
+    if (status !== "OK") {
+      console.error(
+        "Reverse Geocoding error occured. Api response status: " + status
+      );
+      response.status(500).json({ status: 500, error: { type: status } });
+    } else {
+      response.json({
+        status: 200,
+        data: reverseGeocodeResponse.results[0].formatted_address,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    response
+      .status(500)
+      .json({ status: 500, error: { type: ERROR_REVERSE_GEOCODING_FAILED } });
+  }
+});
+
 const port = 8080;
 const server = app.listen(port, () =>
   console.log(`Server listening on http://localhost:${port}`)

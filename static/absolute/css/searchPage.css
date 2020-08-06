@@ -3,14 +3,20 @@ body {
   margin: 0px;
 }
 
+hr {
+  height: 1px;
+  background-color: #d4ede0;
+  border: none;
+}
+
 /* margin left small */
 .ml-s {
-  margin-left: 15px;
+  margin-left: 5px;
 }
 
 /* margin left medium */
 .ml-m {
-  margin-left: 25px;
+  margin-left: 20px;
 }
 
 /* Banner at top of page contains logo */
@@ -107,12 +113,16 @@ body {
   font-size: 1.5em;
 }
 
-.restaurant-card {
+.info-div {
   display: grid;
-  grid-template-columns: 50% auto;
+  grid-template-columns: 25% auto auto;
+}
+
+.restaurant-card {
   border: 1px solid #d4ede0;
   border-radius: 0.5rem;
   margin-top: 25px;
+  margin-bottom: 25px;
   padding: 25px;
 }
 
@@ -132,6 +142,25 @@ body {
 .restaurant-basic-info {
   text-align: right;
   color: #444;
+}
+
+.review-header {
+  color: #fe5f55;
+  font-weight: bold;
+}
+
+.individual-review {
+  padding: 25px;
+}
+
+.show-more-link {
+  color: #fe5f55;
+  margin-bottom: 0px;
+}
+
+.show-more-link:hover {
+  cursor: pointer;
+  color: rgb(226, 55, 43);
 }
 
 .banner-btn {
