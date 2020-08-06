@@ -27,6 +27,7 @@ async function showParticipants() {
     participantContainer.innerHTML = "";
 
     const participants = response.data.participants;
+
     participants.forEach((participant) => {
       let newDiv = document.createElement("div");
       newDiv.classList.add("participant-card");
