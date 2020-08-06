@@ -26,7 +26,7 @@ async function showParticipants() {
     );
     participantContainer.innerHTML = "";
 
-    const participants = response.data;
+    const participants = response.data.participants;
     participants
       .map((p) => ({ ...p, location: `${p.lat},${p.long}` }))
       .forEach((participant) => {

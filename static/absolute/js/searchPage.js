@@ -203,7 +203,7 @@ function showRestaurants(restaurants) {
         "&maxwidth=" +
         width +
         "&key=" +
-        "ApiKey";
+        "APIKey";
 
       const image = document.createElement("img");
       image.src = placePhotosRequest;
